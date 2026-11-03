@@ -75,7 +75,9 @@ const FS = {
   cash: { from: 52.2, to: 54.25 },
   lessons: { from: 58.85, to: 65.05 },
 };
-const inFS = (t: number) => Object.values(FS).some((w) => t >= w.from && t < w.to);
+const within = (t: number, w: { from: number; to: number }) => t >= w.from && t < w.to;
+/** caption pill top: always on clean space, never on the face */
+const capTop = (t: number) => (within(t, FS.car) ? 800 : within(t, FS.cash) ? 420 : within(t, FS.challenge) || within(t, FS.lessons) ? 1470 : 505);
 
 /* ---------------------------------------------------------------- part 1: film look */
 const Grain: React.FC<{ o?: number }> = ({ o = 0.09 }) => {
@@ -130,8 +132,7 @@ const FilmWords: React.FC = () => {
   const c = cur as { w: Word; lead: string[]; ci: number };
   const big = BIG.has(c.w.w);
   const a = p(f, s(c.w.t0) - 1, 5);
-  const onShop = SHOP.some((x) => t >= x.from && t < x.to);
-  const top = onShop ? 1260 : 330;
+  const top = 300;
   return (
     <div style={{ position: "absolute", left: 70, right: 70, top, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", opacity: a, filter: `blur(${(1 - a) * 6}px)`, transform: `translateY(${(1 - a) * 10}px)` }}>
       {big && c.lead.length ? (
@@ -169,26 +170,26 @@ const Speaker: React.FC = () => {
   const grade = `saturate(${mix(m, 1.02, 0.5)}) contrast(${mix(m, 1.04, 1.14)}) brightness(${mix(m, 1, 0.9)}) sepia(${0.12 * m})`;
   return (
     <AbsoluteFill style={{ backgroundColor: "#000", filter: `blur(${fogAt(f) * 22}px)` }}>
-      <AbsoluteFill style={{ transform: `translateY(-230px) scale(${1.12 * push * (1 + fogAt(f) * 0.03)})`, transformOrigin: "540px 230px" }}>
+      <AbsoluteFill style={{ transform: `scale(${push * (1 + fogAt(f) * 0.03)})`, transformOrigin: "540px 1000px" }}>
         <OffthreadVideo src={staticFile("an/cut.mp4")} muted style={{ width: 1080, height: 1920, filter: grade }} />
       </AbsoluteFill>
       {/* part 2: dark band above the head for keywords/cards, faint green tone */}
-      <AbsoluteFill style={{ opacity: 1 - m, background: "linear-gradient(180deg, rgba(3,10,6,.70) 0%, rgba(3,10,6,.38) 20%, rgba(3,10,6,0) 30%)" }} />
+      <AbsoluteFill style={{ opacity: 1 - m, background: "linear-gradient(180deg, rgba(3,10,6,.72) 0%, rgba(3,10,6,.45) 22%, rgba(3,10,6,0) 34%)" }} />
       <AbsoluteFill style={{ opacity: (1 - m) * 0.22, background: `radial-gradient(120% 80% at 50% 40%, transparent 50%, ${K.deep} 100%)` }} />
     </AbsoluteFill>
   );
 };
 
 /* ---------------------------------------------------------------- b-roll */
-const BRoll: React.FC<{ src: string; from: number; to: number; at?: number; mode: "film" | "premium"; push?: [number, number] }> = ({ src, from, to, at = 0, mode, push = [1.0, 1.07] }) => {
+const BRoll: React.FC<{ src: string; from: number; to: number; at?: number; mode: "film" | "premium"; push?: [number, number]; dy?: number }> = ({ src, from, to, at = 0, mode, push = [1.0, 1.07], dy = 0 }) => {
   const dur = s(to) - s(from);
   return (
     <Sequence from={s(from)} durationInFrames={dur}>
-      <BRollInner src={src} dur={dur} at={at} mode={mode} push={push} />
+      <BRollInner src={src} dur={dur} at={at} mode={mode} push={push} dy={dy} />
     </Sequence>
   );
 };
-const BRollInner: React.FC<{ src: string; dur: number; at: number; mode: "film" | "premium"; push: [number, number] }> = ({ src, dur, at, mode, push }) => {
+const BRollInner: React.FC<{ src: string; dur: number; at: number; mode: "film" | "premium"; push: [number, number]; dy: number }> = ({ src, dur, at, mode, push, dy }) => {
   const f = useCurrentFrame();
   const o = p(f, 0, 10, easeInOut) * (1 - p(f, dur - 10, 10, easeInOut));
   const fog = Math.max(interpolate(f, [0, 10], [1, 0], clamp), interpolate(f, [dur - 10, dur], [0, 1], clamp));
@@ -196,9 +197,10 @@ const BRollInner: React.FC<{ src: string; dur: number; at: number; mode: "film" 
   const grade = mode === "film" ? "saturate(.5) contrast(1.16) brightness(.86) sepia(.14)" : "saturate(.82) contrast(1.12) brightness(.9) hue-rotate(-6deg)";
   return (
     <AbsoluteFill style={{ opacity: o, filter: `blur(${fog * 18}px)`, backgroundColor: "#000" }}>
-      <AbsoluteFill style={{ transform: `scale(${sc})` }}>
+      <AbsoluteFill style={{ transform: `translateY(${dy}px) scale(${sc})`, transformOrigin: "540px 0px" }}>
         <OffthreadVideo src={staticFile(src)} startFrom={s(at)} muted style={{ width: 1080, height: 1920, filter: grade }} />
       </AbsoluteFill>
+      {dy > 0 ? <AbsoluteFill style={{ background: `linear-gradient(180deg, #000 0px, #000 ${dy}px, rgba(0,0,0,0) ${dy + 260}px)` }} /> : null}
       {mode === "premium" ? (
         <>
           <AbsoluteFill style={{ background: `linear-gradient(180deg, rgba(3,10,6,.55) 0%, rgba(6,23,15,.0) 35%, rgba(6,23,15,.15) 55%, rgba(3,10,6,.85) 100%)` }} />
@@ -235,7 +237,7 @@ const NormalCaptions: React.FC = () => {
   const end = Math.min(LINES[i + 1]?.t0 ?? line.t1 + 0.6, line.t1 + 0.6);
   const outT = p(f, s(end) - 4, 4, easeIn);
   return (
-    <div style={{ position: "absolute", left: 0, right: 0, top: inFS(t) ? 1470 : 1452, display: "flex", justifyContent: "center", opacity: inT * (1 - outT) }}>
+    <div style={{ position: "absolute", left: 0, right: 0, top: capTop(t), display: "flex", justifyContent: "center", opacity: inT * (1 - outT) }}>
       <div style={{ padding: "16px 30px", borderRadius: 22, background: "rgba(6,18,12,.66)", border: "1px solid rgba(156,255,201,.12)", boxShadow: "0 12px 30px rgba(0,0,0,.25)", transform: `translateY(${(1 - inT) * 10}px)`, display: "flex", gap: 12, maxWidth: 940 }}>
         {line.words.map((w, k) => {
           const on = t >= w.t0;
@@ -265,8 +267,8 @@ const KeywordCaptions: React.FC = () => (
   <>
     {CAPS.map((c) => (
       <Sequence key={c.t} from={s(c.t)} durationInFrames={s(c.to) - s(c.t)} layout="none">
-        <div style={{ position: "absolute", left: 0, right: 0, top: 285, display: "flex", justifyContent: "center" }}>
-          <TwoTier lead={c.lead} keyword={c.key} at={0} out={s(c.to) - s(c.t)} variant="C" tone={c.tone ?? "hue"} scale={0.74} />
+        <div style={{ position: "absolute", left: 0, right: 0, top: 262, display: "flex", justifyContent: "center" }}>
+          <TwoTier lead={c.lead} keyword={c.key} at={0} out={s(c.to) - s(c.t)} variant="C" tone={c.tone ?? "hue"} scale={0.7} />
         </div>
       </Sequence>
     ))}
@@ -416,7 +418,7 @@ const JoinCard: React.FC<{ dur: number }> = ({ dur }) => {
   const b = p(f, dur - 14, 14, easeIn);
   const click = p(f, 54, 8) * (1 - p(f, 62, 10));
   return (
-    <div style={{ position: "absolute", left: 0, right: 0, top: 270, display: "flex", flexDirection: "column", alignItems: "center", gap: 18, opacity: a * (1 - b), transform: `translateY(${(1 - a) * 40 - b * 30 + Math.sin(f / 40) * 4}px)`, filter: `blur(${(1 - a) * 8 + b * 8}px)` }}>
+    <div style={{ position: "absolute", left: 0, right: 0, top: 250, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, opacity: a * (1 - b), transform: `translateY(${(1 - a) * 40 - b * 30 + Math.sin(f / 40) * 4}px)`, filter: `blur(${(1 - a) * 8 + b * 8}px)` }}>
       <div style={{ fontFamily: "Inter", fontWeight: 600, fontSize: 26, letterSpacing: 8, color: K.soft }}>LINK UPAR HAI</div>
       <div style={{ position: "relative", transform: `scale(${1 - click * 0.04})` }}>
         <div style={{ padding: "24px 58px", borderRadius: 999, background: `linear-gradient(180deg, #6BF0AC, ${K.hueDeep})`, color: "#03140B", fontFamily: "Anton", fontSize: 54, letterSpacing: 2, boxShadow: `0 20px 50px ${K.glow}, inset 0 2px 0 rgba(255,255,255,.5)` }}>JOIN COMMUNITY ↑</div>
@@ -467,7 +469,7 @@ export const AnfaalReel: React.FC = () => {
       <Speaker />
       {/* part 1 b-roll: the struggle */}
       {SHOP.map((x) => (
-        <BRoll key={x.from} src="an/shop.mp4" from={x.from} to={x.to} at={x.src} mode="film" push={[1.02, 1.08]} />
+        <BRoll key={x.from} src="an/shop.mp4" from={x.from} to={x.to} at={x.src} mode="film" push={[1.0, 1.05]} dy={300} />
       ))}
       {/* part 2 */}
       <KeywordCaptions />
@@ -476,15 +478,15 @@ export const AnfaalReel: React.FC = () => {
       </Sequence>
       <BRoll src="an/car.mp4" from={FS.car.from} to={FS.car.to} at={2.6} mode="premium" push={[1.0, 1.06]} />
       <Sequence from={s(FS.car.from)} durationInFrames={s(FS.car.to) - s(FS.car.from)} layout="none">
-        <Beat from={37.55} to={39.6} base={FS.car.from} lead="woh bhi" keyword="forex se" y={1080} />
-        <Beat from={39.6} to={42.0} base={FS.car.from} lead="yeh hai" keyword="skill ki power" y={1080} tone="gold" />
+        <Beat from={37.55} to={39.6} base={FS.car.from} lead="woh bhi" keyword="forex se" y={520} />
+        <Beat from={39.6} to={42.0} base={FS.car.from} lead="yeh hai" keyword="skill ki power" y={520} tone="gold" />
       </Sequence>
       <Full w={FS.challenge}>
         <Challenge />
       </Full>
-      <BRoll src="an/cash.mp4" from={FS.cash.from} to={FS.cash.to} at={0.3} mode="premium" push={[1.0, 1.05]} />
+      <BRoll src="an/cash.mp4" from={FS.cash.from} to={FS.cash.to} at={0.3} mode="premium" push={[1.0, 1.04]} dy={190} />
       <Sequence from={s(FS.cash.from)} durationInFrames={s(FS.cash.to) - s(FS.cash.from)} layout="none">
-        <Beat from={52.25} to={54.25} base={FS.cash.from} lead="aur" keyword="acha paisa" y={1080} />
+        <Beat from={52.25} to={54.25} base={FS.cash.from} lead="aur" keyword="acha paisa" y={232} />
       </Sequence>
       <Full w={FS.lessons}>
         <Lessons />
