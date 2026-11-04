@@ -86,9 +86,35 @@ export const FS = {
 };
 const within = (t: number, w: { from: number; to: number }) => t >= w.from && t < w.to;
 const inFS = (t: number) => Object.values(FS).some((w) => within(t, w));
-const BOUNDS = Object.values(FS).flatMap((w) => [w.from, w.to]);
+const BOUNDS = [...Object.values(FS).flatMap((w) => [w.from, w.to]), 8.92, 15.0].filter((x, i, a) => a.indexOf(x) === i).sort((a, b) => a - b);
 /** 0..1..0 around every scene change */
-const cutAt = (f: number) => Math.max(0, ...BOUNDS.map((x) => interpolate(f, [s(x) - 9, s(x), s(x) + 9], [0, 1, 0], { ...clamp, easing: easeInOut })));
+const SH = 7;
+const cutAt = (f: number) => Math.max(0, ...BOUNDS.map((x) => interpolate(f, [s(x) - SH, s(x), s(x) + SH], [0, 1, 0], { ...clamp, easing: easeInOut })));
+/** 0 = open, 1 = fully closed */
+const shutAt = (f: number) => Math.max(0, ...BOUNDS.map((x) => (f < s(x) ? interpolate(f, [s(x) - SH, s(x)], [0, 1], { ...clamp, easing: easeIn }) : interpolate(f, [s(x), s(x) + SH], [1, 0], { ...clamp, easing: easeOut }))));
+/** camera-shutter transition: two black blades meet at the centre line, scene swaps while closed */
+const Shutter: React.FC = () => {
+  const f = useCurrentFrame();
+  const k = shutAt(f);
+  if (k <= 0.001) return null;
+  const h = 980 * k;
+  const blade = (top: boolean): React.CSSProperties => ({
+    position: "absolute",
+    left: -20,
+    right: -20,
+    height: h + 40,
+    [top ? "top" : "bottom"]: -40,
+    background: top ? "linear-gradient(180deg, #000 0%, #000 92%, rgba(0,0,0,.85) 100%)" : "linear-gradient(0deg, #000 0%, #000 92%, rgba(0,0,0,.85) 100%)",
+    boxShadow: `0 ${top ? 10 : -10}px 30px rgba(0,0,0,.6)`,
+  });
+  return (
+    <>
+      <div style={blade(true)} />
+      <div style={blade(false)} />
+      {k > 0.6 ? <div style={{ position: "absolute", left: 0, right: 0, top: 958, height: 4, background: `linear-gradient(90deg, rgba(232,163,90,0), rgba(255,214,170,${(k - 0.6) * 1.6}), rgba(232,163,90,0))` }} /> : null}
+    </>
+  );
+};
 
 /* ---------------------------------------------------------------- film layers */
 const Grain: React.FC<{ o?: number }> = ({ o = 0.1 }) => {
@@ -117,7 +143,6 @@ const LightLeak: React.FC = () => {
   return (
     <>
       <AbsoluteFill style={{ background: `radial-gradient(70% 45% at ${30 + 40 * rnd(Math.floor(f / 20))}% 35%, rgba(255,190,120,${0.42 * t}) 0%, rgba(229,72,77,${0.22 * t}) 40%, rgba(0,0,0,0) 75%)`, mixBlendMode: "screen" }} />
-      <AbsoluteFill style={{ backgroundColor: `rgba(0,0,0,${0.35 * t})` }} />
     </>
   );
 };
@@ -174,7 +199,7 @@ const Speaker: React.FC = () => {
   const t = f / FPS;
   const breathe = 1 + 0.006 * Math.sin(t / 3) + 0.02 * p(f, 0, R3_FRAMES, easeInOut);
   return (
-    <AbsoluteFill style={{ filter: `blur(${cutAt(f) * 16}px)` }}>
+    <AbsoluteFill style={{ filter: `blur(${(1 - p(f, 0, 16)) * 6}px)`, transform: `scale(${mix(p(f, 0, 45, easeOut), 1.32, 1) * (1 + 0.05 * cutAt(f))})`, transformOrigin: "540px 860px" }}>
       {/* backgrounds by section */}
       <Studio />
       <Plate src="an3/broll_war.mp4" at={22} from={0} to={2.75} tint="rgba(229,72,77,.35)" blur={3} bright={0.5} />
@@ -309,7 +334,7 @@ const NewsScene: React.FC = () => {
   const B = FS.news.from;
   const claimAt = s(8.92 - B);
   const camY = interpolate(f, [0, claimAt - 10, claimAt + 10, s(12.4 - B)], [0, -40, -60, -90], { ...clamp, easing: easeInOut });
-  const newsOut = p(f, claimAt - 6, 14, easeIn);
+  const newsOut = f >= claimAt ? 1 : 0;
   const stamp = p(f, claimAt + 14, 10, easeOut);
   return (
     <DarkRoom>
@@ -324,7 +349,7 @@ const NewsScene: React.FC = () => {
           </Glide>
           <Stamp text="QESHM ISLAND · STRAIT OF HORMUZ · 2 NOV 2026" at={44} top={1290} />
         </div>
-        <Sequence from={claimAt - 4} layout="none">
+        <Sequence from={claimAt} layout="none">
           <Glide at={0} rot={-2} style={{ position: "absolute", left: 160, top: 300 }}>
             <div style={{ position: "relative" }}>
               <Clip src="an3/tucker.png" w={760} crop={560} imgW={426} scroll={95} paper={false} />
@@ -378,7 +403,7 @@ const PrepScene: React.FC = () => {
 };
 const XFade: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const f = useCurrentFrame();
-  const o = p(f, 0, 10, easeInOut);
+  const o = 1;
   return <AbsoluteFill style={{ opacity: o, filter: `blur(${(1 - o) * 10}px)` }}>{children}</AbsoluteFill>;
 };
 
@@ -584,9 +609,9 @@ const Full: React.FC<{ w: { from: number; to: number }; children: React.ReactNod
 };
 const FullFade: React.FC<{ dur: number; children: React.ReactNode }> = ({ dur, children }) => {
   const f = useCurrentFrame();
-  const o = p(f, 0, 9) * (1 - p(f, dur - 9, 9));
-  const fog = Math.max(interpolate(f, [0, 10], [1, 0], clamp), interpolate(f, [dur - 10, dur], [0, 1], clamp));
-  return <AbsoluteFill style={{ opacity: o, filter: `blur(${fog * 16}px)`, transform: `scale(${1 + fog * 0.04})` }}>{children}</AbsoluteFill>;
+  const o = 1;
+  const fog = 0;
+  return <AbsoluteFill style={{ opacity: o, filter: fog ? `blur(${fog}px)` : undefined, transform: `scale(${1 + 0.05 * (1 - p(f, 0, 12, easeOut))})` }}>{children}</AbsoluteFill>;
 };
 
 /** hook title card at frame 0: the date line types in under the first keyword */
@@ -627,6 +652,7 @@ export const AnfaalReel3: React.FC = () => (
     </Full>
     <NormalCaptions />
     <LightLeak />
+    <Shutter />
     <Vignette />
     <Grain o={0.1} />
     <Bars />
