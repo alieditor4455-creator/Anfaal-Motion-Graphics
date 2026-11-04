@@ -143,7 +143,7 @@ const PlateInner: React.FC<{ src: string; at: number; dur: number; tint: string;
   return (
     <AbsoluteFill>
       <AbsoluteFill style={{ transform: `scale(${sc})` }}>
-        <OffthreadVideo src={staticFile(src)} startFrom={s(at)} muted style={{ width: 1080, height: 1920, filter: `saturate(.55) contrast(1.15) brightness(${bright}) blur(${blur}px)` }} />
+        <OffthreadVideo src={staticFile(src.replace("broll_war", "plate_war"))} startFrom={s(at)} muted style={{ width: 1080, height: 1920, filter: `brightness(${Math.min(1, bright * 1.7)})` }} />
       </AbsoluteFill>
       <AbsoluteFill style={{ background: tint, mixBlendMode: "soft-light" }} />
     </AbsoluteFill>
@@ -154,10 +154,10 @@ const Studio: React.FC = () => {
   const f = useCurrentFrame();
   return (
     <AbsoluteFill style={{ background: `radial-gradient(70% 50% at 50% 40%, #16110E 0%, ${D.ink2} 55%, ${D.ink} 100%)` }}>
-      <div style={{ position: "absolute", left: -260 + Math.sin(f / 90) * 40, top: 260, width: 760, height: 760, borderRadius: "50%", background: "radial-gradient(50% 50% at 50% 50%, rgba(229,72,77,.28), rgba(229,72,77,0) 70%)", filter: "blur(30px)" }} />
-      <div style={{ position: "absolute", left: 620 + Math.cos(f / 110) * 40, top: 120, width: 700, height: 700, borderRadius: "50%", background: "radial-gradient(50% 50% at 50% 50%, rgba(232,163,90,.22), rgba(232,163,90,0) 70%)", filter: "blur(30px)" }} />
+      <div style={{ position: "absolute", left: -260 + Math.sin(f / 90) * 40, top: 260, width: 760, height: 760, borderRadius: "50%", background: "radial-gradient(50% 50% at 50% 50%, rgba(229,72,77,.28), rgba(229,72,77,0) 70%)" }} />
+      <div style={{ position: "absolute", left: 620 + Math.cos(f / 110) * 40, top: 120, width: 700, height: 700, borderRadius: "50%", background: "radial-gradient(50% 50% at 50% 50%, rgba(232,163,90,.22), rgba(232,163,90,0) 70%)" }} />
       {[0, 1, 2].map((i) => (
-        <div key={i} style={{ position: "absolute", width: 1500, height: 520, left: -210 + Math.sin(f / (120 + i * 40) + i) * 140, top: 700 + i * 300, borderRadius: "50%", background: "radial-gradient(50% 50% at 50% 50%, rgba(255,230,210,.06), rgba(255,230,210,0) 100%)", filter: "blur(36px)" }} />
+        <div key={i} style={{ position: "absolute", width: 1500, height: 520, left: -210 + Math.sin(f / (120 + i * 40) + i) * 140, top: 700 + i * 300, borderRadius: "50%", background: "radial-gradient(50% 50% at 50% 50%, rgba(255,230,210,.06), rgba(255,230,210,0) 100%)" }} />
       ))}
       {/* faint window-blind light streaks */}
       {Array.from({ length: 6 }, (_, i) => (
@@ -181,9 +181,9 @@ const Speaker: React.FC = () => {
       <Plate src="an3/broll_war.mp4" at={36} from={17.3} to={26.0} tint="rgba(232,163,90,.3)" blur={7} bright={0.3} />
       <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 62%, rgba(0,0,0,.75) 100%)" }} />
       {/* rim light behind the subject */}
-      <div style={{ position: "absolute", left: 140, top: 520, width: 800, height: 1000, borderRadius: "50%", background: "radial-gradient(50% 50% at 50% 40%, rgba(255,214,170,.14), rgba(255,214,170,0) 70%)", filter: "blur(20px)" }} />
+      <div style={{ position: "absolute", left: 140, top: 520, width: 800, height: 1000, borderRadius: "50%", background: "radial-gradient(50% 50% at 50% 40%, rgba(255,214,170,.14), rgba(255,214,170,0) 70%)" }} />
       <AbsoluteFill style={{ transform: `scale(${PERSON_SCALE * breathe})`, transformOrigin: "540px 1920px" }}>
-        <OffthreadVideo src={staticFile("an3/person.mov")} transparent muted style={{ width: 1080, height: 1920, filter: "contrast(1.06) saturate(.92) brightness(.96) drop-shadow(0 0 18px rgba(255,214,170,.18)) drop-shadow(0 40px 60px rgba(0,0,0,.6))" }} />
+        <OffthreadVideo src={staticFile("an3/person.mov")} transparent muted style={{ width: 1080, height: 1920, filter: "contrast(1.06) saturate(.92) brightness(.96)" }} />
       </AbsoluteFill>
       {/* floor shadow + grade */}
       <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 80%, rgba(0,0,0,.55) 100%)" }} />

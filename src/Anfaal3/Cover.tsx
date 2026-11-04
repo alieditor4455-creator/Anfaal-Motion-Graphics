@@ -29,7 +29,9 @@ export const AnfaalReel3Cover: React.FC = () => (
 
     {/* speaker */}
     <AbsoluteFill style={{ transform: "scale(.88)", transformOrigin: "540px 1920px" }}>
-      <Img src={staticFile("an3/cover_person.png")} style={{ width: 1080, height: 1920, filter: "contrast(1.06) saturate(.95) drop-shadow(0 0 24px rgba(255,214,170,.25)) drop-shadow(0 40px 60px rgba(0,0,0,.7))" }} />
+      {/* light wrap: soft warm halo from a blurred copy, so edges melt into the scene */}
+      <Img src={staticFile("an3/cover_person.png")} style={{ position: "absolute", width: 1080, height: 1920, filter: "blur(22px) brightness(1.6) sepia(.6) saturate(1.4) opacity(.55)" }} />
+      <Img src={staticFile("an3/cover_person.png")} style={{ position: "absolute", width: 1080, height: 1920, filter: "contrast(1.05) saturate(.95) drop-shadow(0 40px 60px rgba(0,0,0,.7))" }} />
     </AbsoluteFill>
 
     {/* grade + headline */}
@@ -40,7 +42,7 @@ export const AnfaalReel3Cover: React.FC = () => (
         <div style={{ width: 10, height: 10, borderRadius: 5, background: D.ember, boxShadow: `0 0 10px ${D.ember}` }} />
         <span style={{ fontFamily: "JetBrains Mono", fontWeight: 700, fontSize: 22, letterSpacing: 4, color: D.ember }}>US–IRAN · NUCLEAR TALK · MARKETS</span>
       </div>
-      <div style={{ fontFamily: "Anton", fontSize: 150, lineHeight: 1.02, letterSpacing: 2, marginTop: 14, whiteSpace: "nowrap", color: D.paper, textShadow: "0 10px 30px rgba(0,0,0,.7)" }}>
+      <div style={{ fontFamily: "Anton", fontSize: 132, lineHeight: 1.02, letterSpacing: 2, marginTop: 14, whiteSpace: "nowrap", color: D.paper, textShadow: "0 10px 30px rgba(0,0,0,.7)" }}>
         <span style={{ color: D.ember, textShadow: "0 0 26px rgba(229,72,77,.5)" }}>CRASH</span> YA <span style={{ color: K.gold, textShadow: "0 0 26px rgba(232,199,127,.5)" }}>TRAP?</span>
       </div>
     </div>
