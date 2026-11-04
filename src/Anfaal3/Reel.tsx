@@ -183,7 +183,7 @@ const Speaker: React.FC = () => {
       {/* rim light behind the subject */}
       <div style={{ position: "absolute", left: 140, top: 520, width: 800, height: 1000, borderRadius: "50%", background: "radial-gradient(50% 50% at 50% 40%, rgba(255,214,170,.14), rgba(255,214,170,0) 70%)", filter: "blur(20px)" }} />
       <AbsoluteFill style={{ transform: `scale(${PERSON_SCALE * breathe})`, transformOrigin: "540px 1920px" }}>
-        <OffthreadVideo src={staticFile("an3/person.webm")} transparent muted style={{ width: 1080, height: 1920, filter: "contrast(1.06) saturate(.92) brightness(.96) drop-shadow(0 0 18px rgba(255,214,170,.18)) drop-shadow(0 40px 60px rgba(0,0,0,.6))" }} />
+        <OffthreadVideo src={staticFile("an3/person.mov")} transparent muted style={{ width: 1080, height: 1920, filter: "contrast(1.06) saturate(.92) brightness(.96) drop-shadow(0 0 18px rgba(255,214,170,.18)) drop-shadow(0 40px 60px rgba(0,0,0,.6))" }} />
       </AbsoluteFill>
       {/* floor shadow + grade */}
       <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 80%, rgba(0,0,0,.55) 100%)" }} />
