@@ -202,7 +202,7 @@ const Speaker: React.FC = () => {
     <AbsoluteFill style={{ filter: `blur(${(1 - p(f, 0, 16)) * 6}px)`, transform: `scale(${mix(p(f, 0, 45, easeOut), 1.32, 1) * (1 + 0.05 * cutAt(f))})`, transformOrigin: "540px 860px" }}>
       {/* backgrounds by section */}
       <Studio />
-      <Plate src="an3/broll_war.mp4" at={22} from={0} to={2.75} tint="rgba(229,72,77,.35)" blur={3} bright={0.5} />
+      <Plate src="an3/broll_war.mp4" at={23.6} from={0} to={2.75} tint="rgba(229,72,77,.35)" blur={3} bright={0.5} />
       <Plate src="an3/broll_war.mp4" at={36} from={17.3} to={26.0} tint="rgba(232,163,90,.3)" blur={7} bright={0.3} />
       <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 62%, rgba(0,0,0,.75) 100%)" }} />
       {/* rim light behind the subject */}
