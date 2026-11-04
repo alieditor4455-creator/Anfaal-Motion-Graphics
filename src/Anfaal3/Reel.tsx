@@ -294,11 +294,11 @@ const AskScene: React.FC = () => {
     <DarkRoom glow="rgba(232,163,90,.16)">
       <AbsoluteFill style={{ transform: `scale(${push})` }}>
         <Glide at={2} rot={-3} style={{ position: "absolute", left: 270, top: 250 }}>
-          <Clip src="an3/ig_post.jpg" w={540} crop={1430} imgW={736} paper={false} />
+          <Clip src="an3/ig_post.jpg" w={540} crop={1180} imgW={736} paper={false} />
         </Glide>
       </AbsoluteFill>
       <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(5,6,7,.92) 72%)" }} />
-      <Beat from={2.75} to={6.1} base={FS.ask.from} lead="log pooch rahe hain" keyword="gold abhi buy?" y={1220} tone="gold" />
+      <Beat from={2.75} to={6.1} base={FS.ask.from} lead="log pooch rahe hain" keyword="gold abhi buy?" y={1230} tone="gold" />
     </DarkRoom>
   );
 };
@@ -349,7 +349,7 @@ const BRollFull: React.FC<{ src: string; at: number; dur: number; children?: Rea
   return (
     <AbsoluteFill style={{ backgroundColor: D.ink }}>
       <AbsoluteFill style={{ transform: `scale(${sc})` }}>
-        <OffthreadVideo src={staticFile(src)} startFrom={s(at)} muted style={{ width: 1080, height: 1920, filter: "saturate(.45) contrast(1.2) brightness(.62) sepia(.15)" }} />
+        <OffthreadVideo src={staticFile(src)} startFrom={s(at)} muted style={{ width: 1080, height: 1920, filter: "saturate(.5) contrast(1.15) brightness(.82) sepia(.12)" }} />
       </AbsoluteFill>
       <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(5,6,7,.7) 0%, rgba(5,6,7,.1) 28%, rgba(5,6,7,.1) 55%, rgba(5,6,7,.9) 80%)" }} />
       <AbsoluteFill style={{ background: "rgba(40,60,80,.2)", mixBlendMode: "soft-light" }} />
@@ -392,7 +392,7 @@ const CrashScene: React.FC = () => {
         <Glide at={2} rot={-2} style={{ position: "absolute", left: 70, top: 270 }}>
           <Clip src="an3/stocks.png" w={700} crop={432} imgW={578} paper={false} shadow="0 40px 80px rgba(0,0,0,.7), 0 0 60px rgba(229,72,77,.25)" />
         </Glide>
-        <Glide at={18} rot={3} style={{ position: "absolute", left: 360, top: 680 }}>
+        <Glide at={18} rot={3} style={{ position: "absolute", left: 380, top: 620 }}>
           <Clip src="an3/gold_silver.png" w={600} crop={532} imgW={585} paper={false} shadow="0 40px 80px rgba(0,0,0,.7), 0 0 60px rgba(229,72,77,.3)" />
         </Glide>
         <Stamp text="STOCKS · GOLD · SILVER — SELL-OFF" at={10} top={1230} color={D.ember} />
@@ -410,7 +410,7 @@ const PostScene: React.FC = () => {
     <DarkRoom glow="rgba(232,199,127,.18)">
       <Glide at={2} style={{ position: "absolute", left: 250, top: 250 }}>
         <div style={{ position: "relative" }}>
-          <Clip src="an3/ig_post.jpg" w={580} crop={1430} imgW={736} paper={false} shadow={`0 40px 80px rgba(0,0,0,.7), 0 0 70px rgba(232,199,127,.22)`} />
+          <Clip src="an3/ig_post.jpg" w={580} crop={1180} imgW={736} paper={false} shadow={`0 40px 80px rgba(0,0,0,.7), 0 0 70px rgba(232,199,127,.22)`} />
           {/* highlight the zone on his own post */}
           <div style={{ position: "absolute", left: -14, width: 600, top: (905 * 580) / 736, height: 70, borderRadius: 12, border: `4px solid ${K.gold}`, boxShadow: `0 0 30px rgba(232,199,127,.6)`, opacity: ring, transform: `scaleX(${mix(ring, 0.6, 1)})` }} />
           <div style={{ position: "absolute", left: 160, top: (905 * 580) / 736 + 86, opacity: ring, padding: "8px 18px", borderRadius: 999, background: K.gold, fontFamily: "Anton", fontSize: 34, color: "#1A1206", letterSpacing: 2 }}>MERA ZONE</div>
@@ -453,8 +453,8 @@ const ChartScene: React.FC = () => {
   const trapOn = p(f, T(36.6), 16);
   const revOn = p(f, T(42.8), 16);
   const k4 = p(f, T(50.2), 16);
-  const camS = interpolate(f, [0, T(42.6), T(47.8), T(53)], [1.0, 1.08, 1.04, 1.0], { ...clamp, easing: easeInOut });
-  const camX = interpolate(f, [0, T(42.6), T(53)], [0, -60, 0], { ...clamp, easing: easeInOut });
+  const camS = interpolate(f, [0, T(42.6), T(47.8), T(53)], [1.0, 1.05, 1.03, 1.0], { ...clamp, easing: easeInOut });
+  const camX = interpolate(f, [0, T(42.6), T(53)], [0, -20, 0], { ...clamp, easing: easeInOut });
   const last = PATH[Math.max(0, shown - 1)];
   const candles = PATH.slice(0, shown).map((c, i) => {
     const o = i ? PATH[i - 1] : c + 8;
@@ -482,7 +482,7 @@ const ChartScene: React.FC = () => {
               <g opacity={zoneOn}>
                 <rect x={0} y={y(3890)} width={(W - 130) * mix(zoneOn, 0.3, 1)} height={y(3800) - y(3890)} fill={K.gold} opacity={0.12} />
                 <line x1={0} x2={W - 130} y1={y(3890)} y2={y(3890)} stroke={K.gold} strokeDasharray="8 6" strokeWidth={2} />
-                <text x={18} y={y(3800) - 14} fontFamily="Inter" fontWeight={800} fontSize={24} fill={K.gold} letterSpacing={3}>
+                <text x={W - 130 - 18} y={y(3890) + 34} textAnchor="end" fontFamily="Inter" fontWeight={800} fontSize={24} fill={K.gold} letterSpacing={3}>
                   MERA ZONE · 3800–3890
                 </text>
               </g>
