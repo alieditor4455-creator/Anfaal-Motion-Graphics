@@ -2,3 +2,5 @@ node_modules/
 out/
 public/an/*.mp4
 public/an/music.wav
+public/an2/*.mp4
+public/an2/music.wav
