@@ -57,7 +57,7 @@ export const spec: ReelSpec = {
   fps: 30,
   duration: R4_DURATION,
   palette: { hue: "#2FD27E", gold: "#E8C77F", red: "#FF5F66", white: "#F3F7F4", soft: "#BFC8C2", bg: "#030A06", glass: "#0E2A1C", pill: "#06120C" },
-  fonts: { head: "Anton-Regular", body: "Inter-Bold", label: "Inter-SemiBold", mono: "JetBrainsMono-Bold" },
+  fonts: { head: { family: "Anton", style: "Regular", ps: "Anton-Regular" }, body: { family: "Inter", style: "Bold", ps: "Inter-Bold" }, label: { family: "Inter", style: "SemiBold", ps: "Inter-SemiBold" }, mono: { family: "JetBrains Mono", style: "Bold", ps: "JetBrainsMono-Bold" } },
   background: { file: "wall.jpg", from: [540, 960], to: [540, 700], opacity: 90 },
   speaker: {
     file: "speaker.mov",

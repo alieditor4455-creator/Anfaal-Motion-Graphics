@@ -72,30 +72,63 @@
         if (item) importCache[rel] = item;
         return item;
     }
-    function setFont(td, name) { if (!name) return; try { td.font = name; } catch (e) { warn("font not installed: " + name + " (using default)"); } }
+    var fontCache = {}, fontWarned = {};
+    function fontKey(f) { return typeof f === "string" ? f : (f.family + " " + (f.style || "Regular")); }
+    function resolveFont(f) {
+        var key = fontKey(f);
+        if (fontCache.hasOwnProperty(key)) return fontCache[key];
+        var ps = null, fam = typeof f === "string" ? null : f.family, sty = typeof f === "string" ? null : (f.style || "Regular");
+        try {
+            if (fam && app.fonts && app.fonts.getFontsByFamilyNameAndStyleName) {
+                var hits = app.fonts.getFontsByFamilyNameAndStyleName(fam, sty);
+                if (hits && hits.length) ps = hits[0].postScriptName;
+            }
+            if (!ps && app.fonts && app.fonts.allFonts) {
+                var all = app.fonts.allFonts, want = (fam || f).toLowerCase().replace(/\s|-/g, ""), ws = (sty || "").toLowerCase();
+                for (var i = 0; i < all.length && !ps; i++) for (var j = 0; j < all[i].length && !ps; j++) {
+                    var fo = all[i][j];
+                    var fn = String(fo.familyName).toLowerCase().replace(/\s|-/g, ""), pn = String(fo.postScriptName).toLowerCase().replace(/\s|-/g, "");
+                    if ((fn === want || pn === want) && (!ws || String(fo.styleName).toLowerCase() === ws)) ps = fo.postScriptName;
+                }
+            }
+        } catch (e) { /* font API unavailable: fall back to the PostScript guess below */ }
+        if (!ps) ps = typeof f === "string" ? f : (f.ps || null);
+        fontCache[key] = ps;
+        return ps;
+    }
+    function setFont(td, f) {
+        if (!f) return;
+        var ps = resolveFont(f), key = fontKey(f);
+        if (ps) { try { td.font = ps; } catch (e) { ps = null; } }
+        if ((!ps || String(td.font) !== String(ps)) && !fontWarned[key]) { fontWarned[key] = true; warn("Font not found: " + key + " — install it and rebuild (text used the default font)"); }
+    }
 
     /* ------------------------------------------------------------ text + shapes */
     function addText(comp, str, o, P, F) {
+        if (o.caps) str = String(str).toUpperCase();
         var lyr = comp.layers.addText(str);
+        lyr.name = o.name || str.substr(0, 28);
         var tp = lyr.property("ADBE Text Properties").property("ADBE Text Document");
         var td = tp.value;
-        td.resetCharStyle();
-        td.fontSize = o.size || 48;
+        try { td.resetCharStyle(); } catch (e) {}
+        try { td.fontSize = o.size || 48; } catch (e) { warn("font size: " + lyr.name); }
         setFont(td, o.font || F.body);
-        td.fillColor = color(o.color || "white", P);
-        td.applyFill = true;
-        td.applyStroke = false;
-        td.justification = ParagraphJustification.CENTER_JUSTIFY;
-        if (o.tracking !== undefined) td.tracking = o.tracking;
-        if (o.caps) td.allCaps = true;
+        try { td.applyFill = true; td.fillColor = color(o.color || "white", P); } catch (e) { warn("text colour: " + lyr.name); }
+        try { td.applyStroke = false; } catch (e) {}
+        try { td.justification = ParagraphJustification.CENTER_JUSTIFY; } catch (e) {}
+        if (o.tracking !== undefined) { try { td.tracking = o.tracking; } catch (e) {} }
         tp.setValue(td);
-        lyr.name = o.name || str.substr(0, 28);
         // centre the anchor on the text box so position = visual centre
         safe("anchor " + lyr.name, function () {
             var r = lyr.sourceRectAtTime(0, false);
             lyr.property("ADBE Transform Group").property("ADBE Anchor Point").setValue([r.left + r.width / 2, r.top + r.height / 2]);
         });
         lyr.property("ADBE Transform Group").property("ADBE Position").setValue([o.x === undefined ? comp.width / 2 : o.x, o.y]);
+        // auto-fit: never wider than the frame minus the 70 px safe margins
+        safe("fit " + lyr.name, function () {
+            var maxW = o.maxW || (comp.width - 140), w = lyr.sourceRectAtTime(0, false).width;
+            if (w > maxW) { var k = Math.floor((maxW / w) * 100); lyr.property("ADBE Transform Group").property("ADBE Scale").setValue([k, k]); }
+        });
         return lyr;
     }
     function addRect(comp, o, P) {

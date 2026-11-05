@@ -7,7 +7,7 @@ export type Item = {
 export type ReelSpec = {
   name: string; width: number; height: number; fps: number; duration: number;
   palette: Record<string, string>;
-  fonts: { head: string; body: string; label: string; mono: string };
+  fonts: Record<"head" | "body" | "label" | "mono", string | { family: string; style?: string; ps?: string }>;
   background?: { file: string; from?: number[]; to?: number[]; opacity?: number };
   speaker?: { file: string; anchorY?: number; scale?: number; openZoom?: boolean; segments: { at: number; srcIn: number; srcOut: number; punch?: boolean }[] };
   keywords: { t: number; to: number; lead: string; key: string; tone: Tone | string; y: number; scale?: number }[];

@@ -31,8 +31,12 @@ function Prop(name, owner) {
   p.setTemporalEaseAtKey = (k) => { if (k < 1 || k > p.numKeys) problems.push(`ease on missing key ${k} of ${name}`); };
   return p;
 }
+const INSTALLED = new Set((process.env.FONTS ?? "Anton-Regular,Inter-Bold,Inter-SemiBold,JetBrainsMono-Bold").split(",").filter(Boolean));
 class TextDocument {
-  constructor(t) { this.text = t; }
+  constructor(t) { this.text = t; this._font = "ArialMT"; this.fontSize = 48; }
+  get font() { return this._font; }
+  set font(v) { if (INSTALLED.has(v)) this._font = v; }   // AE silently ignores unknown fonts
+  set allCaps(v) { throw new Error("allCaps is read-only in AE 2026"); }
   resetCharStyle() {}
   characterRange(a, b) { if (a < 0 || b > this.text.length || a >= b) problems.push(`characterRange ${a}-${b} outside "${this.text}"`); return {}; }
 }
@@ -43,7 +47,11 @@ function Layer(comp, kind, name) {
   Object.assign(L, { name, kind, inPoint: 0, outPoint: comp.duration, startTime: 0, adjustmentLayer: false, audioEnabled: true, hasAudio: kind === "av" });
   L.property = (n) => (L.children[n] ||= Prop(n, L));
   L.moveAfter = () => {};
-  L.sourceRectAtTime = () => ({ left: 0, top: -40, width: 400, height: 60 });
+  L.sourceRectAtTime = () => {
+    const td = L.children["ADBE Text Properties"]?.children["ADBE Text Document"]?._v;
+    const w = td ? String(td.text).length * (td.fontSize || 48) * (td._font === "Anton-Regular" ? 0.42 : 0.6) : 400;
+    return { left: -w / 2, top: -40, width: w, height: 60 };
+  };
   comp._layers.push(L);
   return L;
 }
@@ -81,6 +89,13 @@ const sandbox = {
       importFile: (io) => { stats.imports++; return { name: path.basename(io.file.fsName), width: 1080, height: 1920, hasAudio: /\.(mov|wav)$/.test(io.file.fsName), parentFolder: null }; },
     },
     beginUndoGroup() {}, endUndoGroup() {}, newProject() {},
+    fonts: {
+      getFontsByFamilyNameAndStyleName: (fam, sty) => {
+        const ps = { "Anton Regular": "Anton-Regular", "Inter Bold": "Inter-Bold", "Inter SemiBold": "Inter-SemiBold", "JetBrains Mono Bold": "JetBrainsMono-Bold" }[fam + " " + sty];
+        return ps && INSTALLED.has(ps) ? [{ postScriptName: ps, familyName: fam, styleName: sty }] : [];
+      },
+      allFonts: [],
+    },
   },
 };
 sandbox.$.global = sandbox.$.global;
@@ -97,7 +112,9 @@ for (const a of spec.audio) if (a.at > spec.duration) problems.push(`audio ${a.f
 
 build(spec, { fsName: mediaDir });
 // the builder's own report (warnings collected while building)
-for (const r of sandbox.$.global.__anfaalReport()) problems.push("builder: " + r);
+const fontNotes = [];
+for (const r of sandbox.$.global.__anfaalReport()) (r.startsWith("Font not found") ? fontNotes : problems).push("builder: " + r);
+if (fontNotes.length) console.log("font notes:\n- " + fontNotes.join("\n- "));
 console.log(`comps ${stats.comps}, layers ${stats.layers}, texts ${stats.texts}, keyframes ${stats.keys}, expressions ${stats.expressions}, imports ${stats.imports}`);
 if (problems.length) { console.log(`\n${problems.length} PROBLEM(S):\n- ` + [...new Set(problems)].join("\n- ")); process.exit(1); }
 console.log("ALL CHECKS PASSED");
