@@ -11,7 +11,7 @@ import { CandleRain, K, TwoTier, clamp, easeIn, easeInOut, easeOut, mix, p, rnd 
 const FPS = 30;
 /** fumble removed: source 50.06 -> 54.14 is cut out (jump cut with a zoom punch) */
 export const CUT = { a: 50.06, b: 54.14 };
-export const R4_DURATION = 65.0 - (CUT.b - CUT.a);
+export const R4_DURATION = 58.9; // ends right after the last word (no trailing pause)
 export const R4_FRAMES = Math.round(R4_DURATION * FPS);
 const s = (t: number) => Math.round(t * FPS);
 type Tone = "hue" | "gold" | "red" | "white";
@@ -118,11 +118,13 @@ const ChartWall: React.FC = () => {
     </AbsoluteFill>
   );
 };
-const PERSON_SCALE = 0.84;
+const PERSON_SCALE = 1.0; // full frame, exactly like the source
+/** soft fade at the clip's left/right edges so the chair never ends in a hard vertical line */
+const EDGE_FADE = "linear-gradient(90deg, transparent 0%, #000 13%, #000 87%, transparent 100%)";
 const Speaker: React.FC = () => {
   const f = useCurrentFrame();
   const t = f / FPS;
-  const breathe = 1 + 0.005 * Math.sin(t / 3) + 0.02 * p(f, 0, R4_FRAMES, easeInOut);
+  const breathe = 1 + 0.004 * Math.sin(t / 3);
   const open = mix(p(f, 0, 40, easeOut), 1.22, 1);
   return (
     <AbsoluteFill style={{ transform: `scale(${open * (1 + 0.05 * cutAt(f))})`, transformOrigin: "540px 820px" }}>
@@ -175,8 +177,8 @@ const KeywordCaptions: React.FC = () => (
   <>
     {CAPS.map((c) => (
       <Sequence key={c.t} from={s(c.t)} durationInFrames={s(c.to) - s(c.t)} layout="none">
-        <div style={{ position: "absolute", left: 0, right: 0, top: 300, display: "flex", justifyContent: "center" }}>
-          <TwoTier lead={c.lead} keyword={c.key} at={0} out={s(c.to) - s(c.t)} variant="C" tone={c.tone ?? "hue"} scale={0.7} />
+        <div style={{ position: "absolute", left: 0, right: 0, top: 205, display: "flex", justifyContent: "center" }}>
+          <TwoTier lead={c.lead} keyword={c.key} at={0} out={s(c.to) - s(c.t)} variant="C" tone={c.tone ?? "hue"} scale={0.56} />
         </div>
       </Sequence>
     ))}
@@ -214,7 +216,7 @@ const HookCard: React.FC = () => {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
       <Label>XAUUSD · SIRF 2 DIN MEIN</Label>
-      <div style={{ fontFamily: "Anton", fontSize: 176, lineHeight: 1, color: K.hue, textShadow: `0 0 34px ${K.glow}`, fontVariantNumeric: "tabular-nums" }}>+${v}</div>
+      <div style={{ fontFamily: "Anton", fontSize: 140, lineHeight: 1, color: K.hue, textShadow: `0 0 34px ${K.glow}`, fontVariantNumeric: "tabular-nums" }}>+${v}</div>
       <div style={{ display: "flex", gap: 10, marginTop: 4, opacity: p(f, 56, 14) }}>
         {["GOLD", "RECOVERY", "MOVE"].map((x) => (
           <div key={x} style={{ padding: "8px 20px", borderRadius: 999, background: "rgba(6,18,12,.72)", border: "1.5px solid rgba(156,255,201,.25)", fontFamily: "Inter", fontWeight: 700, fontSize: 22, letterSpacing: 5, color: K.white }}>{x}</div>
@@ -439,9 +441,9 @@ const Button: React.FC<{ text: string; clickAt?: number }> = ({ text, clickAt = 
     </div>
   );
 };
-const OnScreen: React.FC<{ from: number; to: number; top?: number; children: React.ReactNode }> = ({ from, to, top = 270, children }) => (
+const OnScreen: React.FC<{ from: number; to: number; top?: number; children: React.ReactNode }> = ({ from, to, children }) => (
   <Sequence from={s(from)} durationInFrames={s(to) - s(from)} layout="none">
-    <Glide at={0} dur={s(to) - s(from)} style={{ position: "absolute", left: 0, right: 0, top, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+    <Glide at={0} dur={s(to) - s(from)} style={{ position: "absolute", left: 0, right: 0, top: 200, display: "flex", flexDirection: "column", alignItems: "center", gap: 10, transform: "scale(.72)", transformOrigin: "50% 0%" }}>
       {children}
     </Glide>
   </Sequence>
@@ -510,5 +512,11 @@ export const AnfaalReel4: React.FC = () => (
         </Sequence>
       </JumpPunch>
     </Sequence>
+    <EndFade />
   </AbsoluteFill>
 );
+const EndFade: React.FC = () => {
+  const f = useCurrentFrame();
+  const o = p(f, R4_FRAMES - 15, 15, easeIn);
+  return o > 0 ? <AbsoluteFill style={{ backgroundColor: K.void, opacity: o }} /> : null;
+};

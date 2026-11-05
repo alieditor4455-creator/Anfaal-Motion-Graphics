@@ -1,6 +1,6 @@
 # reel 4 audio: crisp voice + ducked God's Plan + client SFX pack on every shutter cut
 import subprocess, sys
-out = sys.argv[1]; CA, CB = 50.06, 54.14; dur = 65.0 - (CB - CA)
+out = sys.argv[1]; CA, CB = 50.06, 54.14; dur = 58.9
 sh = lambda t: t if t < CA else t - (CB - CA)
 cuts = [(5.95, 'camera_shutter', .5), (11.38, 'smooth_cammera_shutter', .4), (18.84, 'camera_shutter', .5), (24.9, 'little_bit_hard_cammera_shutter', .5),
         (31.6, 'smooth_cammera_shutter', .4), (33.75, 'little_bit_hard_cammera_shutter', .5), (36.63, 'smooth_cammera_shutter', .4)]
@@ -13,5 +13,5 @@ fc = ['[0:a]aformat=channel_layouts=stereo[v]', f'[1:a]aformat=channel_layouts=s
 for k, (t, n, vol) in enumerate(sfx, start=2):
     inp += ['-i', f'public/an4/sfx/{n}.wav']; d = int(max(0, sh(t)) * 1000)
     fc.append(f'[{k}:a]aresample=48000,aformat=channel_layouts=stereo,volume={vol},adelay={d}|{d}[s{k}]'); lab.append(f'[s{k}]')
-fc.append(''.join(lab) + f'amix=inputs={len(lab)}:normalize=0:duration=first,apad,atrim=0:{dur}[out]')
+fc.append(''.join(lab) + f'amix=inputs={len(lab)}:normalize=0:duration=first,apad,atrim=0:{dur},afade=t=out:st={dur - 0.6}:d=0.6[out]')
 subprocess.run(['ffmpeg', '-v', 'error', '-y', *inp, '-filter_complex', ';'.join(fc), '-map', '[out]', out], check=True)
