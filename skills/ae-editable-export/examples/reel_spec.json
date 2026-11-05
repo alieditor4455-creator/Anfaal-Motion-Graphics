@@ -1,0 +1,1743 @@
+{
+ "name": "Anfaal NFP Reel",
+ "width": 1080,
+ "height": 1920,
+ "fps": 30,
+ "duration": 58.9,
+ "palette": {
+  "hue": "#2FD27E",
+  "gold": "#E8C77F",
+  "red": "#FF5F66",
+  "white": "#F3F7F4",
+  "soft": "#BFC8C2",
+  "bg": "#030A06",
+  "glass": "#0E2A1C",
+  "pill": "#06120C"
+ },
+ "fonts": {
+  "head": {
+   "family": "Anton",
+   "style": "Regular",
+   "ps": "Anton-Regular"
+  },
+  "body": {
+   "family": "Inter",
+   "style": "Bold",
+   "ps": "Inter-Bold"
+  },
+  "label": {
+   "family": "Inter",
+   "style": "SemiBold",
+   "ps": "Inter-SemiBold"
+  },
+  "mono": {
+   "family": "JetBrains Mono",
+   "style": "Bold",
+   "ps": "JetBrainsMono-Bold"
+  }
+ },
+ "background": {
+  "file": "wall.jpg",
+  "from": [
+   540,
+   960
+  ],
+  "to": [
+   540,
+   700
+  ],
+  "opacity": 90
+ },
+ "speaker": {
+  "file": "speaker.mov",
+  "anchorY": 900,
+  "openZoom": true,
+  "segments": [
+   {
+    "at": 0,
+    "srcIn": 0,
+    "srcOut": 50.06
+   },
+   {
+    "at": 50.06,
+    "srcIn": 54.14,
+    "srcOut": 62.98,
+    "punch": true
+   }
+  ]
+ },
+ "keywords": [
+  {
+   "t": 18.84,
+   "to": 21.81,
+   "lead": "impact pehle hi",
+   "key": "aa chuka hai",
+   "tone": "white",
+   "y": 235,
+   "scale": 0.56
+  },
+  {
+   "t": 21.81,
+   "to": 24.9,
+   "lead": "dekho gold kaise",
+   "key": "fly kar raha hai",
+   "tone": "gold",
+   "y": 235,
+   "scale": 0.56
+  },
+  {
+   "t": 31.6,
+   "to": 33.75,
+   "lead": "lekin is mein",
+   "key": "ek twist hai",
+   "tone": "white",
+   "y": 235,
+   "scale": 0.56
+  },
+  {
+   "t": 36.63,
+   "to": 41.85,
+   "lead": "aap ko chahiye",
+   "key": "right direction?",
+   "tone": "hue",
+   "y": 235,
+   "scale": 0.56
+  },
+  {
+   "t": 47.96,
+   "to": 50.06,
+   "lead": "yeh thi saari",
+   "key": "updates",
+   "tone": "white",
+   "y": 235,
+   "scale": 0.56
+  },
+  {
+   "t": 50.06,
+   "to": 52.47,
+   "lead": "koi bhi",
+   "key": "problem?",
+   "tone": "white",
+   "y": 235,
+   "scale": 0.56
+  },
+  {
+   "t": 52.47,
+   "to": 54.37,
+   "lead": "apna account",
+   "key": "flip karna hai?",
+   "tone": "hue",
+   "y": 235,
+   "scale": 0.56
+  }
+ ],
+ "onCamera": [
+  {
+   "type": "label",
+   "text": "XAUUSD \u00b7 SIRF 2 DIN MEIN",
+   "x": 540,
+   "y": 225,
+   "at": 0.3,
+   "out": 5.95
+  },
+  {
+   "type": "counter",
+   "from": 0,
+   "to": 240,
+   "plus": true,
+   "unit": "$",
+   "x": 540,
+   "y": 300,
+   "size": 120,
+   "at": 0.3,
+   "out": 5.95,
+   "countAt": 0.55,
+   "dur": 1.7
+  },
+  {
+   "type": "card",
+   "text": "CONTACT KARO",
+   "sub": "BIO MEIN NUMBER",
+   "x": 540,
+   "y": 290,
+   "w": 620,
+   "h": 130,
+   "at": 41.85,
+   "out": 47.95
+  },
+  {
+   "type": "button",
+   "text": "JOIN COMMUNITY \u2191",
+   "sub": "LINK UPAR HAI",
+   "x": 540,
+   "y": 290,
+   "at": 54.370000000000005,
+   "out": 57.21
+  },
+  {
+   "type": "button",
+   "text": "FOLLOW KARO",
+   "x": 540,
+   "y": 270,
+   "at": 57.21,
+   "out": 58.9
+  }
+ ],
+ "fullscreens": [
+  {
+   "name": "Real chart",
+   "from": 5.95,
+   "to": 11.38,
+   "bgFile": "wall.jpg",
+   "items": [
+    {
+     "type": "image",
+     "file": "gold_chart.png",
+     "x": 540,
+     "y": 640,
+     "w": 960,
+     "at": 0.1
+    },
+    {
+     "type": "pill",
+     "text": "+$240 \u00b7 2 DIN",
+     "x": 700,
+     "y": 430,
+     "size": 40,
+     "at": 1.8
+    },
+    {
+     "type": "label",
+     "text": "GOLD FUTURES \u00b7 5 MIN \u00b7 REAL CHART",
+     "x": 540,
+     "y": 1010,
+     "at": 0.3
+    },
+    {
+     "type": "title",
+     "lead": "do din mein",
+     "key": "tez recovery",
+     "y": 1110,
+     "at": 0.05999999999999961,
+     "out": 2.7399999999999993
+    },
+    {
+     "type": "title",
+     "lead": "ab kya",
+     "key": "move aayega?",
+     "tone": "white",
+     "y": 1110,
+     "at": 2.7399999999999993,
+     "out": 5.430000000000001
+    }
+   ]
+  },
+  {
+   "name": "NFP calendar",
+   "from": 11.38,
+   "to": 18.84,
+   "bgFile": "wall.jpg",
+   "items": [
+    {
+     "type": "card",
+     "text": "NONFARM PAYROLLS",
+     "sub": "KAL \u00b7 6 NOV \u00b7 13:30 UTC",
+     "x": 540,
+     "y": 420,
+     "w": 900,
+     "h": 160,
+     "at": 0.1
+    },
+    {
+     "type": "card",
+     "text": "65K",
+     "sub": "CONSENSUS",
+     "x": 250,
+     "y": 680,
+     "w": 280,
+     "h": 150,
+     "at": 0.7
+    },
+    {
+     "type": "card",
+     "text": "29K",
+     "sub": "PREVIOUS",
+     "x": 540,
+     "y": 680,
+     "w": 280,
+     "h": 150,
+     "at": 0.95
+    },
+    {
+     "type": "card",
+     "text": "90K",
+     "sub": "EXPECTED (SEP)",
+     "x": 830,
+     "y": 680,
+     "w": 280,
+     "h": 150,
+     "at": 1.2
+    },
+    {
+     "type": "image",
+     "file": "nfp.png",
+     "x": 540,
+     "y": 880,
+     "w": 520,
+     "at": 1.5,
+     "opacity": 85
+    },
+    {
+     "type": "title",
+     "lead": "kal ke",
+     "key": "NFP mein",
+     "y": 1100,
+     "at": 0.02,
+     "out": 2.08
+    },
+    {
+     "type": "title",
+     "lead": "is baar mujhe",
+     "key": "kuch khaas nahi",
+     "tone": "white",
+     "y": 1100,
+     "at": 2.08,
+     "out": 7.459999999999999
+    }
+   ]
+  },
+  {
+   "name": "Analysis gauge",
+   "from": 24.9,
+   "to": 31.6,
+   "bgFile": "wall.jpg",
+   "items": [
+    {
+     "type": "rect",
+     "name": "Gauge card",
+     "w": 900,
+     "h": 620,
+     "radius": 40,
+     "x": 540,
+     "y": 610,
+     "fill": "glass",
+     "fillOpacity": 70,
+     "stroke": "hue",
+     "strokeOpacity": 25,
+     "at": 0.05
+    },
+    {
+     "type": "label",
+     "text": "MERA NFP ANALYSIS",
+     "x": 540,
+     "y": 350,
+     "at": 0.2
+    },
+    {
+     "type": "label",
+     "text": "NEGATIVE",
+     "x": 290,
+     "y": 800,
+     "color": "red",
+     "at": 0.3
+    },
+    {
+     "type": "label",
+     "text": "NEUTRAL",
+     "x": 540,
+     "y": 800,
+     "at": 0.3
+    },
+    {
+     "type": "label",
+     "text": "POSITIVE",
+     "x": 790,
+     "y": 800,
+     "color": "hue",
+     "at": 0.3
+    },
+    {
+     "type": "needle",
+     "x": 540,
+     "y": 720,
+     "len": 270,
+     "glide": false,
+     "keys": [
+      [
+       0.35,
+       -80
+      ],
+      [
+       2.3000000000000007,
+       -10
+      ],
+      [
+       4.100000000000001,
+       52
+      ]
+     ]
+    },
+    {
+     "type": "button",
+     "text": "NFP \u00b7 POSITIVE EXPECTED",
+     "x": 540,
+     "y": 870,
+     "size": 38,
+     "at": 4.100000000000001
+    },
+    {
+     "type": "title",
+     "lead": "ab main",
+     "key": "batata hoon",
+     "tone": "white",
+     "y": 1100,
+     "at": 0.05,
+     "out": 2.240000000000002
+    },
+    {
+     "type": "title",
+     "lead": "mere analysis se",
+     "key": "NFP positive",
+     "y": 1100,
+     "at": 2.240000000000002,
+     "out": 6.700000000000003
+    }
+   ]
+  },
+  {
+   "name": "Timing twist",
+   "from": 33.75,
+   "to": 36.63,
+   "bgFile": "wall.jpg",
+   "items": [
+    {
+     "type": "rect",
+     "name": "Clock face",
+     "w": 640,
+     "h": 640,
+     "radius": 320,
+     "x": 540,
+     "y": 610,
+     "fill": "glass",
+     "fillOpacity": 70,
+     "stroke": "hue",
+     "strokeOpacity": 30,
+     "at": 0.05
+    },
+    {
+     "type": "needle",
+     "name": "Minute hand",
+     "x": 540,
+     "y": 610,
+     "len": 230,
+     "glide": false,
+     "keys": [
+      [
+       0.4,
+       0
+      ],
+      [
+       1.6,
+       -360
+      ]
+     ]
+    },
+    {
+     "type": "needle",
+     "name": "Hour hand",
+     "x": 540,
+     "y": 610,
+     "len": 150,
+     "wid": 14,
+     "color": "hue",
+     "glide": false,
+     "keys": [
+      [
+       0.4,
+       180
+      ],
+      [
+       1.6,
+       150
+      ]
+     ]
+    },
+    {
+     "type": "label",
+     "text": "NFP \u00b7 6 NOV \u00b7 13:30 UTC",
+     "x": 540,
+     "y": 970,
+     "color": "gold",
+     "at": 0.6
+    },
+    {
+     "type": "title",
+     "lead": "NFP aayega",
+     "key": "1 ghanta pehle",
+     "tone": "gold",
+     "y": 1060,
+     "at": 0.05,
+     "out": 2.8800000000000026
+    }
+   ]
+  }
+ ],
+ "captions": [
+  {
+   "t0": 0.44,
+   "t1": 1.491,
+   "y": 1535,
+   "words": [
+    {
+     "w": "gold",
+     "t0": 0.44,
+     "hot": "hue"
+    },
+    {
+     "w": "bhai",
+     "t0": 0.769
+    },
+    {
+     "w": "nikal",
+     "t0": 1.097
+    }
+   ]
+  },
+  {
+   "t0": 1.491,
+   "t1": 2.346,
+   "y": 1535,
+   "words": [
+    {
+     "w": "chuka",
+     "t0": 1.491
+    },
+    {
+     "w": "hai",
+     "t0": 1.886
+    },
+    {
+     "w": "do",
+     "t0": 2.149
+    }
+   ]
+  },
+  {
+   "t0": 2.346,
+   "t1": 3.55,
+   "y": 1535,
+   "words": [
+    {
+     "w": "din",
+     "t0": 2.346
+    },
+    {
+     "w": "ke",
+     "t0": 2.609
+    },
+    {
+     "w": "andar",
+     "t0": 2.806
+    }
+   ]
+  },
+  {
+   "t0": 3.2,
+   "t1": 6.12,
+   "y": 1535,
+   "words": [
+    {
+     "w": "240",
+     "t0": 3.2,
+     "hot": "hue"
+    },
+    {
+     "w": "dollar",
+     "t0": 3.741,
+     "hot": "hue"
+    },
+    {
+     "w": "ka",
+     "t0": 4.688
+    },
+    {
+     "w": "move",
+     "t0": 5.094,
+     "hot": "hue"
+    }
+   ]
+  },
+  {
+   "t0": 6.01,
+   "t1": 7.138,
+   "y": 1515,
+   "words": [
+    {
+     "w": "do",
+     "t0": 6.01
+    },
+    {
+     "w": "din",
+     "t0": 6.222
+    },
+    {
+     "w": "ke",
+     "t0": 6.504
+    },
+    {
+     "w": "andar",
+     "t0": 6.715
+    }
+   ]
+  },
+  {
+   "t0": 7.138,
+   "t1": 9.04,
+   "y": 1515,
+   "words": [
+    {
+     "w": "itni",
+     "t0": 7.138
+    },
+    {
+     "w": "tezi",
+     "t0": 7.491
+    },
+    {
+     "w": "se",
+     "t0": 7.844
+    },
+    {
+     "w": "recovery",
+     "t0": 8.055,
+     "hot": "hue"
+    }
+   ]
+  },
+  {
+   "t0": 8.69,
+   "t1": 9.658,
+   "y": 1515,
+   "words": [
+    {
+     "w": "aur",
+     "t0": 8.69
+    },
+    {
+     "w": "ab",
+     "t0": 8.905
+    },
+    {
+     "w": "baat",
+     "t0": 9.067
+    },
+    {
+     "w": "karte",
+     "t0": 9.336
+    }
+   ]
+  },
+  {
+   "t0": 9.658,
+   "t1": 10.627,
+   "y": 1515,
+   "words": [
+    {
+     "w": "hain",
+     "t0": 9.658
+    },
+    {
+     "w": "ke",
+     "t0": 9.927
+    },
+    {
+     "w": "kya",
+     "t0": 10.089
+    },
+    {
+     "w": "moves",
+     "t0": 10.304,
+     "hot": "hue"
+    }
+   ]
+  },
+  {
+   "t0": 10.627,
+   "t1": 11.73,
+   "y": 1515,
+   "words": [
+    {
+     "w": "aa",
+     "t0": 10.627
+    },
+    {
+     "w": "sakte",
+     "t0": 10.788
+    },
+    {
+     "w": "hain",
+     "t0": 11.111
+    }
+   ]
+  },
+  {
+   "t0": 11.38,
+   "t1": 12.386,
+   "y": 1515,
+   "words": [
+    {
+     "w": "inhein",
+     "t0": 11.38
+    },
+    {
+     "w": "kal",
+     "t0": 11.883
+    },
+    {
+     "w": "ke",
+     "t0": 12.17
+    }
+   ]
+  },
+  {
+   "t0": 12.386,
+   "t1": 13.67,
+   "y": 1515,
+   "words": [
+    {
+     "w": "NFP",
+     "t0": 12.386,
+     "hot": "hue"
+    },
+    {
+     "w": "ke",
+     "t0": 12.673
+    },
+    {
+     "w": "andar",
+     "t0": 12.889
+    }
+   ]
+  },
+  {
+   "t0": 13.46,
+   "t1": 14.461,
+   "y": 1515,
+   "words": [
+    {
+     "w": "ab",
+     "t0": 13.46
+    },
+    {
+     "w": "main",
+     "t0": 13.627
+    },
+    {
+     "w": "agar",
+     "t0": 13.905
+    },
+    {
+     "w": "apna",
+     "t0": 14.183
+    }
+   ]
+  },
+  {
+   "t0": 14.461,
+   "t1": 15.628,
+   "y": 1515,
+   "words": [
+    {
+     "w": "bataun",
+     "t0": 14.461
+    },
+    {
+     "w": "toh",
+     "t0": 14.85
+    },
+    {
+     "w": "mujhe",
+     "t0": 15.072
+    },
+    {
+     "w": "koi",
+     "t0": 15.406
+    }
+   ]
+  },
+  {
+   "t0": 15.628,
+   "t1": 16.59,
+   "y": 1515,
+   "words": [
+    {
+     "w": "itna",
+     "t0": 15.628
+    },
+    {
+     "w": "khaas",
+     "t0": 15.906
+    }
+   ]
+  },
+  {
+   "t0": 16.24,
+   "t1": 17.304,
+   "y": 1515,
+   "words": [
+    {
+     "w": "feel",
+     "t0": 16.24
+    },
+    {
+     "w": "nahi",
+     "t0": 16.535
+    },
+    {
+     "w": "ho",
+     "t0": 16.831
+    },
+    {
+     "w": "raha",
+     "t0": 17.008
+    }
+   ]
+  },
+  {
+   "t0": 17.304,
+   "t1": 18.19,
+   "y": 1515,
+   "words": [
+    {
+     "w": "is",
+     "t0": 17.304
+    },
+    {
+     "w": "baar",
+     "t0": 17.481
+    },
+    {
+     "w": "ki",
+     "t0": 17.776
+    },
+    {
+     "w": "NFP",
+     "t0": 17.954,
+     "hot": "hue"
+    }
+   ]
+  },
+  {
+   "t0": 18.19,
+   "t1": 19.19,
+   "y": 1515,
+   "words": [
+    {
+     "w": "pe,",
+     "t0": 18.19
+    },
+    {
+     "w": "kyunke",
+     "t0": 18.426
+    }
+   ]
+  },
+  {
+   "t0": 18.84,
+   "t1": 20.365,
+   "y": 1535,
+   "words": [
+    {
+     "w": "jo",
+     "t0": 18.84
+    },
+    {
+     "w": "pehle",
+     "t0": 19.081
+    },
+    {
+     "w": "hi",
+     "t0": 19.562
+    },
+    {
+     "w": "impact",
+     "t0": 19.803,
+     "hot": "hue"
+    }
+   ]
+  },
+  {
+   "t0": 20.365,
+   "t1": 22.16,
+   "y": 1535,
+   "words": [
+    {
+     "w": "aa",
+     "t0": 20.365
+    },
+    {
+     "w": "chuka",
+     "t0": 20.606
+    },
+    {
+     "w": "hai,",
+     "t0": 21.088
+    },
+    {
+     "w": "aur",
+     "t0": 21.489
+    }
+   ]
+  },
+  {
+   "t0": 21.81,
+   "t1": 22.307,
+   "y": 1535,
+   "words": [
+    {
+     "w": "gold",
+     "t0": 21.81,
+     "hot": "hue"
+    },
+    {
+     "w": "aap",
+     "t0": 22.017
+    },
+    {
+     "w": "ke",
+     "t0": 22.183
+    }
+   ]
+  },
+  {
+   "t0": 22.307,
+   "t1": 23.011,
+   "y": 1535,
+   "words": [
+    {
+     "w": "saamne",
+     "t0": 22.307
+    },
+    {
+     "w": "kaise",
+     "t0": 22.597
+    },
+    {
+     "w": "fly",
+     "t0": 22.846,
+     "hot": "hue"
+    }
+   ]
+  },
+  {
+   "t0": 23.011,
+   "t1": 23.9,
+   "y": 1535,
+   "words": [
+    {
+     "w": "kar",
+     "t0": 23.011
+    },
+    {
+     "w": "raha",
+     "t0": 23.177
+    },
+    {
+     "w": "hai",
+     "t0": 23.384
+    }
+   ]
+  },
+  {
+   "t0": 24.06,
+   "t1": 25.1,
+   "y": 1535,
+   "words": [
+    {
+     "w": "lekin",
+     "t0": 24.06
+    }
+   ]
+  },
+  {
+   "t0": 24.95,
+   "t1": 25.836,
+   "y": 1515,
+   "words": [
+    {
+     "w": "ab",
+     "t0": 24.95
+    },
+    {
+     "w": "main",
+     "t0": 25.106
+    },
+    {
+     "w": "agar",
+     "t0": 25.367
+    },
+    {
+     "w": "aap",
+     "t0": 25.628
+    }
+   ]
+  },
+  {
+   "t0": 25.836,
+   "t1": 26.723,
+   "y": 1515,
+   "words": [
+    {
+     "w": "ko",
+     "t0": 25.836
+    },
+    {
+     "w": "bataun",
+     "t0": 25.993
+    },
+    {
+     "w": "toh",
+     "t0": 26.358
+    },
+    {
+     "w": "is",
+     "t0": 26.566
+    }
+   ]
+  },
+  {
+   "t0": 26.723,
+   "t1": 27.49,
+   "y": 1515,
+   "words": [
+    {
+     "w": "baar",
+     "t0": 26.723
+    },
+    {
+     "w": "ki",
+     "t0": 26.984
+    }
+   ]
+  },
+  {
+   "t0": 27.14,
+   "t1": 28.652,
+   "y": 1515,
+   "words": [
+    {
+     "w": "NFP",
+     "t0": 27.14,
+     "hot": "hue"
+    },
+    {
+     "w": "mere",
+     "t0": 27.428
+    },
+    {
+     "w": "analysis",
+     "t0": 27.788,
+     "hot": "hue"
+    },
+    {
+     "w": "ke",
+     "t0": 28.436
+    }
+   ]
+  },
+  {
+   "t0": 28.652,
+   "t1": 30.73,
+   "y": 1515,
+   "words": [
+    {
+     "w": "mutabiq",
+     "t0": 28.652
+    },
+    {
+     "w": "positive",
+     "t0": 29.228,
+     "hot": "hue"
+    },
+    {
+     "w": "aayegi",
+     "t0": 29.876
+    }
+   ]
+  },
+  {
+   "t0": 30.52,
+   "t1": 31.69,
+   "y": 1515,
+   "words": [
+    {
+     "w": "lekin",
+     "t0": 30.52
+    }
+   ]
+  },
+  {
+   "t0": 31.77,
+   "t1": 32.842,
+   "y": 1535,
+   "words": [
+    {
+     "w": "ek",
+     "t0": 31.77
+    },
+    {
+     "w": "twist",
+     "t0": 31.971,
+     "hot": "hue"
+    },
+    {
+     "w": "hai",
+     "t0": 32.373
+    },
+    {
+     "w": "is",
+     "t0": 32.641
+    }
+   ]
+  },
+  {
+   "t0": 32.842,
+   "t1": 34.13,
+   "y": 1535,
+   "words": [
+    {
+     "w": "ke",
+     "t0": 32.842
+    },
+    {
+     "w": "andar,",
+     "t0": 33.043
+    },
+    {
+     "w": "woh",
+     "t0": 33.512
+    }
+   ]
+  },
+  {
+   "t0": 33.78,
+   "t1": 35.469,
+   "y": 1515,
+   "words": [
+    {
+     "w": "ek",
+     "t0": 33.78
+    },
+    {
+     "w": "ghanta",
+     "t0": 34.097,
+     "hot": "hue"
+    },
+    {
+     "w": "pehle",
+     "t0": 34.836
+    }
+   ]
+  },
+  {
+   "t0": 35.469,
+   "t1": 36.98,
+   "y": 1515,
+   "words": [
+    {
+     "w": "aayega",
+     "t0": 35.469
+    },
+    {
+     "w": "NFP",
+     "t0": 36.208,
+     "hot": "hue"
+    }
+   ]
+  },
+  {
+   "t0": 36.63,
+   "t1": 37.617,
+   "y": 1535,
+   "words": [
+    {
+     "w": "aur",
+     "t0": 36.63
+    },
+    {
+     "w": "agar",
+     "t0": 36.827
+    },
+    {
+     "w": "aap",
+     "t0": 37.074
+    },
+    {
+     "w": "chahte",
+     "t0": 37.272
+    }
+   ]
+  },
+  {
+   "t0": 37.617,
+   "t1": 38.358,
+   "y": 1535,
+   "words": [
+    {
+     "w": "ho",
+     "t0": 37.617
+    },
+    {
+     "w": "is",
+     "t0": 37.765
+    },
+    {
+     "w": "ke",
+     "t0": 37.913
+    },
+    {
+     "w": "andar",
+     "t0": 38.061
+    }
+   ]
+  },
+  {
+   "t0": 38.358,
+   "t1": 39.3,
+   "y": 1535,
+   "words": [
+    {
+     "w": "main",
+     "t0": 38.358
+    },
+    {
+     "w": "aap",
+     "t0": 38.604
+    },
+    {
+     "w": "ko",
+     "t0": 38.802
+    }
+   ]
+  },
+  {
+   "t0": 38.95,
+   "t1": 40.867,
+   "y": 1535,
+   "words": [
+    {
+     "w": "right",
+     "t0": 38.95,
+     "hot": "hue"
+    },
+    {
+     "w": "direction",
+     "t0": 39.376,
+     "hot": "hue"
+    },
+    {
+     "w": "bataun",
+     "t0": 40.086
+    },
+    {
+     "w": "toh",
+     "t0": 40.583
+    }
+   ]
+  },
+  {
+   "t0": 40.867,
+   "t1": 42.14,
+   "y": 1535,
+   "words": [
+    {
+     "w": "bio",
+     "t0": 40.867,
+     "hot": "hue"
+    },
+    {
+     "w": "ke",
+     "t0": 41.151
+    },
+    {
+     "w": "andar",
+     "t0": 41.364
+    }
+   ]
+  },
+  {
+   "t0": 42.04,
+   "t1": 42.987,
+   "y": 1535,
+   "words": [
+    {
+     "w": "wahan",
+     "t0": 42.04
+    },
+    {
+     "w": "se",
+     "t0": 42.374
+    },
+    {
+     "w": "mujh",
+     "t0": 42.541
+    },
+    {
+     "w": "se",
+     "t0": 42.82
+    }
+   ]
+  },
+  {
+   "t0": 42.987,
+   "t1": 44.268,
+   "y": 1535,
+   "words": [
+    {
+     "w": "contact",
+     "t0": 42.987,
+     "hot": "hue"
+    },
+    {
+     "w": "kar",
+     "t0": 43.432
+    },
+    {
+     "w": "lena,",
+     "t0": 43.655
+    },
+    {
+     "w": "mere",
+     "t0": 43.989
+    }
+   ]
+  },
+  {
+   "t0": 44.268,
+   "t1": 45.62,
+   "y": 1535,
+   "words": [
+    {
+     "w": "saath",
+     "t0": 44.268
+    },
+    {
+     "w": "trade",
+     "t0": 44.602,
+     "hot": "hue"
+    },
+    {
+     "w": "karna",
+     "t0": 44.936
+    }
+   ]
+  },
+  {
+   "t0": 45.27,
+   "t1": 46.25,
+   "y": 1535,
+   "words": [
+    {
+     "w": "mujhe",
+     "t0": 45.27
+    },
+    {
+     "w": "message",
+     "t0": 45.55,
+     "hot": "hue"
+    },
+    {
+     "w": "karna,",
+     "t0": 45.923
+    }
+   ]
+  },
+  {
+   "t0": 46.25,
+   "t1": 47.137,
+   "y": 1535,
+   "words": [
+    {
+     "w": "community",
+     "t0": 46.25,
+     "hot": "hue"
+    },
+    {
+     "w": "mein",
+     "t0": 46.717
+    },
+    {
+     "w": "bhi",
+     "t0": 46.95
+    }
+   ]
+  },
+  {
+   "t0": 47.137,
+   "t1": 48.14,
+   "y": 1535,
+   "words": [
+    {
+     "w": "add",
+     "t0": 47.137,
+     "hot": "hue"
+    },
+    {
+     "w": "kar",
+     "t0": 47.323
+    },
+    {
+     "w": "dunga",
+     "t0": 47.51
+    }
+   ]
+  },
+  {
+   "t0": 47.96,
+   "t1": 48.92,
+   "y": 1535,
+   "words": [
+    {
+     "w": "so",
+     "t0": 47.96
+    },
+    {
+     "w": "yeh",
+     "t0": 48.14
+    },
+    {
+     "w": "saari",
+     "t0": 48.38
+    },
+    {
+     "w": "ki",
+     "t0": 48.74
+    }
+   ]
+  },
+  {
+   "t0": 48.92,
+   "t1": 50.06,
+   "y": 1535,
+   "words": [
+    {
+     "w": "saari",
+     "t0": 48.92
+    },
+    {
+     "w": "updates",
+     "t0": 49.28,
+     "hot": "hue"
+    },
+    {
+     "w": "hain",
+     "t0": 49.76
+    }
+   ]
+  },
+  {
+   "t0": 50.06,
+   "t1": 50.898,
+   "y": 1535,
+   "words": [
+    {
+     "w": "agar",
+     "t0": 50.06
+    },
+    {
+     "w": "aap",
+     "t0": 50.322
+    },
+    {
+     "w": "ko",
+     "t0": 50.532
+    },
+    {
+     "w": "koi",
+     "t0": 50.689
+    }
+   ]
+  },
+  {
+   "t0": 50.898,
+   "t1": 51.946,
+   "y": 1535,
+   "words": [
+    {
+     "w": "bhi",
+     "t0": 50.898
+    },
+    {
+     "w": "problem",
+     "t0": 51.108
+    },
+    {
+     "w": "aa",
+     "t0": 51.527
+    },
+    {
+     "w": "rahi",
+     "t0": 51.684
+    }
+   ]
+  },
+  {
+   "t0": 51.946,
+   "t1": 52.82,
+   "y": 1535,
+   "words": [
+    {
+     "w": "ho",
+     "t0": 51.946
+    },
+    {
+     "w": "ya",
+     "t0": 52.103
+    },
+    {
+     "w": "aap",
+     "t0": 52.26
+    }
+   ]
+  },
+  {
+   "t0": 52.47,
+   "t1": 53.643,
+   "y": 1535,
+   "words": [
+    {
+     "w": "apna",
+     "t0": 52.47
+    },
+    {
+     "w": "account",
+     "t0": 52.796,
+     "hot": "hue"
+    },
+    {
+     "w": "flip",
+     "t0": 53.317,
+     "hot": "hue"
+    }
+   ]
+  },
+  {
+   "t0": 53.643,
+   "t1": 54.58,
+   "y": 1535,
+   "words": [
+    {
+     "w": "karna",
+     "t0": 53.643
+    },
+    {
+     "w": "ho",
+     "t0": 54.034
+    }
+   ]
+  },
+  {
+   "t0": 54.41,
+   "t1": 55.542,
+   "y": 1535,
+   "words": [
+    {
+     "w": "toh",
+     "t0": 54.41
+    },
+    {
+     "w": "upar",
+     "t0": 54.648
+    },
+    {
+     "w": "community",
+     "t0": 54.946,
+     "hot": "hue"
+    }
+   ]
+  },
+  {
+   "t0": 55.542,
+   "t1": 56.257,
+   "y": 1535,
+   "words": [
+    {
+     "w": "ka",
+     "t0": 55.542
+    },
+    {
+     "w": "link",
+     "t0": 55.721,
+     "hot": "hue"
+    },
+    {
+     "w": "bhi",
+     "t0": 56.019
+    }
+   ]
+  },
+  {
+   "t0": 56.257,
+   "t1": 57.56,
+   "y": 1535,
+   "words": [
+    {
+     "w": "hai,",
+     "t0": 56.257
+    },
+    {
+     "w": "join",
+     "t0": 56.555,
+     "hot": "hue"
+    },
+    {
+     "w": "karna",
+     "t0": 56.853
+    }
+   ]
+  },
+  {
+   "t0": 57.21,
+   "t1": 58.302,
+   "y": 1535,
+   "words": [
+    {
+     "w": "page",
+     "t0": 57.21
+    },
+    {
+     "w": "ko",
+     "t0": 57.574
+    },
+    {
+     "w": "follow",
+     "t0": 57.792,
+     "hot": "hue"
+    }
+   ]
+  },
+  {
+   "t0": 58.302,
+   "t1": 58.9,
+   "y": 1535,
+   "words": [
+    {
+     "w": "karna",
+     "t0": 58.302
+    },
+    {
+     "w": "mat",
+     "t0": 58.738
+    },
+    {
+     "w": "bhooliyega",
+     "t0": 59.029
+    }
+   ]
+  }
+ ],
+ "transitions": [
+  5.95,
+  11.38,
+  18.84,
+  24.9,
+  31.6,
+  33.75,
+  36.63
+ ],
+ "endFade": 0.5,
+ "grain": true,
+ "audio": [
+  {
+   "role": "Voice",
+   "file": "voice.wav",
+   "at": 0
+  },
+  {
+   "role": "Music",
+   "file": "music.wav",
+   "at": 0
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/smooth_cammera_shutter.wav",
+   "at": 0,
+   "gain": -9
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/camera_shutter.wav",
+   "at": 5.85,
+   "gain": -6
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/smooth_cammera_shutter.wav",
+   "at": 11.28,
+   "gain": -8
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/camera_shutter.wav",
+   "at": 18.74,
+   "gain": -6
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/little_bit_hard_cammera_shutter.wav",
+   "at": 24.8,
+   "gain": -6
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/smooth_cammera_shutter.wav",
+   "at": 31.5,
+   "gain": -8
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/little_bit_hard_cammera_shutter.wav",
+   "at": 33.65,
+   "gain": -6
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/smooth_cammera_shutter.wav",
+   "at": 36.53,
+   "gain": -8
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/premium_riser.wav",
+   "at": 31.35,
+   "gain": -7.5
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/pop.wav",
+   "at": 29,
+   "gain": -14
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/pop.wav",
+   "at": 6.6,
+   "gain": -15
+  },
+  {
+   "role": "SFX",
+   "file": "sfx/pop.wav",
+   "at": 54.52,
+   "gain": -13
+  }
+ ],
+ "media": {
+  "speaker.mov": "out/an4_unused/person.mov",
+  "wall.jpg": "public/an4/wall.jpg",
+  "gold_chart.png": "public/an4/gold_chart.png",
+  "nfp.png": "public/an4/nfp.png",
+  "voice.wav": "public/an4/voice_cut.wav",
+  "music.wav": "public/an4/music.wav",
+  "sfx/": "public/an4/sfx/"
+ }
+}
