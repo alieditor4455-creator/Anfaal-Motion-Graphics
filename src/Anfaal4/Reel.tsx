@@ -9,7 +9,9 @@ import { AbsoluteFill, Img, Sequence, interpolate, staticFile, useCurrentFrame }
 import { CandleRain, K, TwoTier, clamp, easeIn, easeInOut, easeOut, mix, p, rnd } from "../Anfaal/design";
 
 const FPS = 30;
-export const R4_DURATION = 65.0;
+/** fumble removed: source 50.06 -> 54.14 is cut out (jump cut with a zoom punch) */
+export const CUT = { a: 50.06, b: 54.14 };
+export const R4_DURATION = 65.0 - (CUT.b - CUT.a);
 export const R4_FRAMES = Math.round(R4_DURATION * FPS);
 const s = (t: number) => Math.round(t * FPS);
 type Tone = "hue" | "gold" | "red" | "white";
@@ -35,9 +37,8 @@ const SPEECH: [number, number, string][] = [
   [38.95, 41.79, "right direction bataun toh bio ke andar"],
   [42.04, 45.27, "wahan se mujh se contact kar lena, mere saath trade karna"],
   [45.27, 47.79, "mujhe message karna, community mein bhi add kar dunga"],
-  [47.96, 51.21, "so yeh saari ki saari updates hain, agar aap is"],
-  [52.09, 54.61, "agar aap ko koi bhi details, agar"],
-  [54.61, 56.55, "aap ko koi bhi problem aa rahi ho ya aap"],
+  [47.96, 50.06, "so yeh saari ki saari updates hain"],
+  [54.14, 56.55, "agar aap ko koi bhi problem aa rahi ho ya aap"],
   [56.55, 58.31, "apna account flip karna ho"],
   [58.49, 61.29, "toh upar community ka link bhi hai, join karna"],
   [61.29, 63.91, "page ko follow karna mat bhooliyega"],
@@ -166,8 +167,8 @@ const CAPS: Cap[] = [
   { t: 21.81, to: 24.9, lead: "dekho gold kaise", key: "fly kar raha hai", tone: "gold" },
   { t: 31.6, to: 33.75, lead: "lekin is mein", key: "ek twist hai", tone: "white" },
   { t: 36.63, to: 41.85, lead: "aap ko chahiye", key: "right direction?" },
-  { t: 47.96, to: 52.05, lead: "yeh thi saari", key: "updates", tone: "white" },
-  { t: 52.05, to: 56.55, lead: "koi bhi details ya", key: "problem?", tone: "white" },
+  { t: 47.96, to: 50.06, lead: "yeh thi saari", key: "updates", tone: "white" },
+  { t: 54.14, to: 56.55, lead: "koi bhi", key: "problem?", tone: "white" },
   { t: 56.55, to: 58.45, lead: "apna account", key: "flip karna hai?" },
 ];
 const KeywordCaptions: React.FC = () => (
@@ -456,7 +457,7 @@ const Punch: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <AbsoluteFill style={{ transform: `scale(${1 + 0.05 * (1 - p(f, 0, 12, easeOut))})` }}>{children}</AbsoluteFill>;
 };
 
-export const AnfaalReel4: React.FC = () => (
+const Body: React.FC = () => (
   <AbsoluteFill style={{ backgroundColor: K.void }}>
     <Speaker />
     <OnScreen from={0.3} to={5.95} top={250}>
@@ -489,5 +490,25 @@ export const AnfaalReel4: React.FC = () => (
     <AbsoluteFill style={{ background: "radial-gradient(120% 80% at 50% 45%, transparent 55%, rgba(0,0,0,.5) 100%)" }} />
     <Grain />
     <Shutter />
+  </AbsoluteFill>
+);
+
+/** the edit: everything up to CUT.a, then a jump cut (zoom punch) straight to CUT.b */
+const JumpPunch: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const f = useCurrentFrame();
+  return <AbsoluteFill style={{ transform: `scale(${mix(p(f, 0, 10, easeOut), 1.07, 1)})`, transformOrigin: "540px 900px" }}>{children}</AbsoluteFill>;
+};
+export const AnfaalReel4: React.FC = () => (
+  <AbsoluteFill style={{ backgroundColor: K.void }}>
+    <Sequence durationInFrames={s(CUT.a)}>
+      <Body />
+    </Sequence>
+    <Sequence from={s(CUT.a)}>
+      <JumpPunch>
+        <Sequence from={-s(CUT.b)}>
+          <Body />
+        </Sequence>
+      </JumpPunch>
+    </Sequence>
   </AbsoluteFill>
 );
