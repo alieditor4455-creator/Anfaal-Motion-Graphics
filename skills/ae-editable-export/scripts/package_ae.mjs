@@ -54,7 +54,8 @@ fs.copyFileSync(path.join(here, "..", "references", "install.md"), path.join(dir
 // zip (store only: media is already compressed)
 const zip = path.resolve(outParent, safeName + ".zip");
 fs.rmSync(zip, { force: true });
-execFileSync("zip", ["-r", "-q", "-0", zip, safeName], { cwd: path.resolve(outParent) });
+// standard Deflate (macOS Archive Utility fails with "Error 94" on large stored entries)
+execFileSync("zip", ["-r", "-q", "-6", zip, safeName, "-x", "*/.*"], { cwd: path.resolve(outParent) });
 const mb = fs.statSync(zip).size / 1048576;
 console.log(`FOLDER: ${dir}`);
 console.log(`ZIP   : ${zip} (${mb.toFixed(0)} MB)`);
