@@ -17,7 +17,7 @@ const s = (t: number) => Math.round(t * FPS);
 type Tone = "hue" | "gold" | "red" | "white";
 
 /* ---------------------------------------------------------------- transcript (Roman Urdu) */
-const SPEECH: [number, number, string][] = [
+export const SPEECH: [number, number, string][] = [
   [0.44, 3.2, "gold bhai nikal chuka hai do din ke andar"],
   [3.2, 5.77, "240 dollar ka move"],
   [6.01, 8.69, "do din ke andar itni tezi se recovery"],
@@ -43,7 +43,7 @@ const SPEECH: [number, number, string][] = [
   [58.49, 61.29, "toh upar community ka link bhi hai, join karna"],
   [61.29, 63.91, "page ko follow karna mat bhooliyega"],
 ];
-const HOT = new Set(["gold", "240", "dollar", "move", "recovery", "moves", "nfp", "impact", "fly", "analysis", "positive", "twist", "ghanta", "right", "direction", "bio", "contact", "trade", "message", "community", "add", "updates", "details", "account", "flip", "link", "join", "follow"]);
+export const HOT = new Set(["gold", "240", "dollar", "move", "recovery", "moves", "nfp", "impact", "fly", "analysis", "positive", "twist", "ghanta", "right", "direction", "bio", "contact", "trade", "message", "community", "add", "updates", "details", "account", "flip", "link", "join", "follow"]);
 type Word = { w: string; t0: number; t1: number };
 type Line = { words: Word[]; t0: number; t1: number };
 const LINES: Line[] = SPEECH.flatMap(([a, b, text]) => {
@@ -163,8 +163,8 @@ const NormalCaptions: React.FC = () => {
     </div>
   );
 };
-type Cap = { t: number; to: number; lead: string; key: string; tone?: Tone };
-const CAPS: Cap[] = [
+export type Cap = { t: number; to: number; lead: string; key: string; tone?: Tone };
+export const CAPS: Cap[] = [
   { t: 18.84, to: 21.81, lead: "impact pehle hi", key: "aa chuka hai", tone: "white" },
   { t: 21.81, to: 24.9, lead: "dekho gold kaise", key: "fly kar raha hai", tone: "gold" },
   { t: 31.6, to: 33.75, lead: "lekin is mein", key: "ek twist hai", tone: "white" },
