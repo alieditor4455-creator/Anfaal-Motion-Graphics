@@ -36,9 +36,13 @@ Files in this skill:
 5. **Test**: `node scripts/test_builder.mjs "out/ae/<Project>/project.json"` → must print `ALL CHECKS PASSED`.
    Also run once with a font missing: `FONTS=Inter-Bold node scripts/test_builder.mjs …` (must only add a font note).
    Fix the spec or script for every problem it lists; never deliver with problems.
-6. **Deliver** with SendUserFile: the zip (or, if > 400 MB, the "(no video)" zip + each `.mov` separately,
-   re-encoded with a higher `-qscale:v` until each is < 400 MB). Tell the user: unzip, put any separately sent
-   `.mov` into `assets/`, run AnfaalBuilder, **Load .json…** → `project.json`, **Build**.
+6. **Deliver ONE zip** with SendUserFile — everything inside `assets/`, never send clips separately
+   (the user can't download loose .mov files). To stay under the 400 MB upload limit:
+   - trim the speaker clip to only the used segments and concatenate them, so its timeline equals the final
+     timeline (`segments` then become `{at: t, srcIn: t, …}`); e.g.
+     `ffmpeg -i person.mov -filter_complex "[0:v]trim=0:A,setpts=PTS-STARTPTS[a];[0:v]trim=B:C,setpts=PTS-STARTPTS[b];[a][b]concat=n=2:v=1[v]" -map "[v]" -c:v prores_ks -profile:v 4 -pix_fmt yuva444p10le -vendor apl0 -qscale:v 30 speaker.mov`
+   - raise `-qscale:v` (30 → 36) until the zip is < 400 MB; keep alpha (ProRes 4444).
+   Tell the user: unzip, run AnfaalBuilder, **Load .json…** → `project.json`, **Build**.
 
 ## Rules (each came from a real failure)
 

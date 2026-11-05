@@ -62,5 +62,6 @@ if (mb > 400) {
   const lite = path.resolve(outParent, safeName + " (no video).zip");
   fs.rmSync(lite, { force: true });
   execFileSync("zip", ["-r", "-q", lite, safeName, "-x", "*.mov", "*.mp4"], { cwd: path.resolve(outParent) });
-  console.log(`LITE  : ${lite} — send the .mov/.mp4 files separately (each must be < 400 MB; re-encode ProRes 4444 with a higher -qscale:v if needed)`);
+  console.error(`TOO BIG for one upload (${mb.toFixed(0)} MB > 400 MB): trim the speaker clip to the used segments and raise -qscale:v (see SKILL.md step 6), then package again. (${lite} written only for reference.)`);
+  process.exitCode = 2;
 }

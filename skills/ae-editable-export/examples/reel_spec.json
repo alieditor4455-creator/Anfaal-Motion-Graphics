@@ -60,8 +60,8 @@
    },
    {
     "at": 50.06,
-    "srcIn": 54.14,
-    "srcOut": 62.98,
+    "srcIn": 50.06,
+    "srcOut": 58.9,
     "punch": true
    }
   ]
@@ -1732,7 +1732,7 @@
   }
  ],
  "media": {
-  "speaker.mov": "out/an4_unused/person.mov",
+  "speaker.mov": "out/speaker_edit.mov",
   "wall.jpg": "public/an4/wall.jpg",
   "gold_chart.png": "public/an4/gold_chart.png",
   "nfp.png": "public/an4/nfp.png",
