@@ -1,19 +1,18 @@
 // GoldMoves design system: the client's brand (ink-green / money-green / gold) rebuilt in the
 // reference's language: one-hue world, glossy 3D objects, depth of field, fog, centred
 // two-tier type, physics motion and fog/blur transitions.
-import { loadFont } from "@remotion/fonts";
 import React from "react";
-import { AbsoluteFill, Easing, interpolate, spring, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame } from "remotion";
+import { FONT_CHECKS, FONT_CSS } from "./fontData";
 
-loadFont({ family: "Inter", url: staticFile("fonts/Inter.woff2"), weight: "100 900" });
-loadFont({ family: "Inter", url: staticFile("fonts/Inter-LightItalic.woff2"), weight: "300", style: "italic" });
-loadFont({ family: "Inter", url: staticFile("fonts/Inter-Italic.woff2"), weight: "400", style: "italic" });
-loadFont({ family: "Nunito", url: staticFile("fonts/Nunito-Black.woff2"), weight: "900" });
-loadFont({ family: "Nunito", url: staticFile("fonts/Nunito-ExtraBold.woff2"), weight: "800" });
-loadFont({ family: "Plus Jakarta Sans", url: staticFile("fonts/PlusJakarta-ExtraBold.woff2"), weight: "800" });
-loadFont({ family: "Instrument Serif", url: staticFile("fonts/InstrumentSerif-Italic.woff2"), weight: "400", style: "italic" });
-loadFont({ family: "Anton", url: staticFile("fonts/Anton.woff2"), weight: "400" });
-loadFont({ family: "JetBrains Mono", url: staticFile("fonts/JetBrainsMono-Bold.woff2"), weight: "700" });
+// Fonts are embedded as data URIs (no network fetch -> no stalled delayRender during long renders).
+if (typeof document !== "undefined" && !document.getElementById("anfaal-fonts")) {
+  const el = document.createElement("style");
+  el.id = "anfaal-fonts";
+  el.textContent = FONT_CSS;
+  document.head.appendChild(el);
+  FONT_CHECKS.forEach((f) => document.fonts.load(f));
+}
 
 export const K = {
   void: "#030A06",
