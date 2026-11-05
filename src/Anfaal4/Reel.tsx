@@ -5,7 +5,7 @@
 // two-tier type, glass cards, real screenshots (TradingView gold futures, NFP calendar).
 // Heavy effects are pre-baked (wall blur, matte) so the browser only composites light layers.
 import React from "react";
-import { AbsoluteFill, Img, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, Sequence, interpolate, staticFile, useCurrentFrame } from "remotion";
 import { CandleRain, K, TwoTier, clamp, easeIn, easeInOut, easeOut, mix, p, rnd } from "../Anfaal/design";
 
 const FPS = 30;
@@ -127,7 +127,7 @@ const Speaker: React.FC = () => {
     <AbsoluteFill style={{ transform: `scale(${open * (1 + 0.05 * cutAt(f))})`, transformOrigin: "540px 820px" }}>
       <ChartWall />
       <AbsoluteFill style={{ transform: `scale(${PERSON_SCALE * breathe})`, transformOrigin: "540px 1920px" }}>
-        <OffthreadVideo src={staticFile("an4/person.mov")} transparent muted style={{ width: 1080, height: 1920 }} />
+        <Img src={staticFile(`an4/pf/${String(Math.min(1561, Math.floor((f / FPS) * 24) + 1)).padStart(5, "0")}.png`)} style={{ width: 1080, height: 1920 }} />
       </AbsoluteFill>
       <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 82%, rgba(3,10,6,.6) 100%)" }} />
     </AbsoluteFill>
