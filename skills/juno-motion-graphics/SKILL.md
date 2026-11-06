@@ -13,7 +13,7 @@ Start every new video from it.
 
 Files:
 - `template/JunoMotion.tsx`: the approved Remotion composition (exports `JunoDark` with the speaker and `JunoNoDave` with the "o." mark).
-- `template/JunoLogo.tsx`: the approved 6.6s logo sting (`JunoLogo`, 9:16, 60fps, silent). OSS-pattern hull → starburst → the centre square becomes the ring → the junior node orbits and docks as the period → the mark glides into the wordmark as J-U-N wipe out of it. Use it as the end card or intro. The final frame is the real `logo_green.png` at 1/3 of the width.
+- `template/JunoLogo.tsx`: the approved 6.6s logo sting (`JunoLogo`, 9:16, 60fps, silent). It opens inside the Junior Mark (the green ring band fills the screen) and pulls back in log-space zoom, with three parallax depths of OSS-pattern geometry, landing on the centred "o.". The period (the junior) orbits the ring once and docks, the vector hands over to `mark_green.png`, and the mark glides into the wordmark as J-U-N wipe out of it. The final frame is the real `logo_green.png` at 1/3 of the width.
 - `assets/`: brand-approved lockups (logos, Junior Mark in green/dark/white/light), the 3D product icons, and the Outfit 400/700 and Caveat 500 fonts.
 - `scripts/setup.sh`: copies the assets, extracts the take (JPEG sequence + audio) and installs the template.
 - `scripts/timing.py`: speech phrases from silence detection, used to time the beats.
