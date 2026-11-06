@@ -1,0 +1,207 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Juno Style Frames</title>
+<style>
+@font-face{font-family:Outfit;font-weight:200;src:url(../public/juno/fonts/Outfit-200.woff2)}
+@font-face{font-family:Outfit;font-weight:300;src:url(../public/juno/fonts/Outfit-300.woff2)}
+@font-face{font-family:Outfit;font-weight:400;src:url(../public/juno/fonts/Outfit-400.woff2)}
+@font-face{font-family:Outfit;font-weight:500;src:url(../public/juno/fonts/Outfit-500.woff2)}
+@font-face{font-family:Outfit;font-weight:600;src:url(../public/juno/fonts/Outfit-600.woff2)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#000}
+#f{position:relative;width:1080px;height:1920px;overflow:hidden;font-family:Outfit,sans-serif}
+.abs{position:absolute}
+.cap{font-weight:400;font-size:26px;letter-spacing:.1em;text-transform:uppercase}
+.hl{display:inline-block;border-radius:.13em;padding:0 .16em .04em;margin:0 -.04em;font-weight:400}
+.pill{position:absolute;display:flex;align-items:center;gap:14px;padding:9px 28px 9px 9px;border-radius:999px;font-weight:500;font-size:30px;white-space:nowrap}
+.pill .av{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:22px;font-weight:600}
+.pill .ptr{position:absolute;left:-26px;top:-26px;width:30px;height:30px}
+.grain{position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.22}
+</style></head>
+<body><div id="f"></div>
+<script>
+const A='../public/juno/';
+const C={green:'#1CE49B',light:'#B4F7CA',dark:'#013A2F',off:'#F8F9FA',black:'#1E1E1E',red:'#FF6B6B'};
+const TH={
+ dark:{fg:C.off,sub:'rgba(180,247,202,.75)',acc:C.green,hlBg:C.green,hlFg:C.dark,line:'rgba(180,247,202,.22)',lineStrong:'rgba(28,228,155,.55)',
+   mark:'mark_green.png',logo:'logo_duo_white.png',bug:'logo_light.png',pillBg:C.green,pillFg:C.dark,avBg:C.dark,avFg:C.green,pillBorder:'rgba(248,249,250,.9)',
+   card:'#F8F9FA',cardFg:C.dark,chipBg:'rgba(1,58,47,.75)',chipFg:C.off,chipBorder:'rgba(180,247,202,.3)'},
+ light:{fg:C.dark,sub:'rgba(1,58,47,.6)',acc:'#12B87C',hlBg:C.green,hlFg:C.dark,line:'rgba(1,58,47,.12)',lineStrong:'rgba(1,58,47,.35)',
+   mark:'mark_dark.png',logo:'logo_duo_dark.png',bug:'logo_white.png',pillBg:C.dark,pillFg:C.off,avBg:C.green,avFg:C.dark,pillBorder:'#fff',
+   card:'#fff',cardFg:C.dark,chipBg:'#fff',chipFg:C.dark,chipBorder:'rgba(1,58,47,.12)'}
+};
+const q=new URLSearchParams(location.search); const theme=q.get('theme')||'dark'; const frame=q.get('frame')||'fs1'; const t=TH[theme];
+const F=document.getElementById('f');
+const add=(html)=>F.insertAdjacentHTML('beforeend',html);
+
+function grainSVG(){return `<svg class="grain" width="1080" height="1920"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .9 0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>`}
+
+function bg(){
+ if(theme==='dark'){
+  add(`<div class="abs" style="inset:0;background:
+   radial-gradient(70% 38% at 50% 104%, rgba(28,228,155,.65), rgba(28,228,155,.12) 55%, transparent 75%),
+   radial-gradient(90% 60% at 30% 25%, #03503f 0%, #013A2F 45%, #012820 100%)"></div>`);
+  add(`<div class="abs" style="inset:0;background:radial-gradient(120% 80% at 50% 45%, transparent 55%, rgba(0,12,9,.55))"></div>`);
+  add(grainSVG());
+ } else {
+  add(`<div class="abs" style="inset:0;background:${C.off}"></div>`);
+  add(`<div class="abs" style="inset:0;background-image:linear-gradient(rgba(1,58,47,.045) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(1,58,47,.045) 1.5px,transparent 1.5px);background-size:108px 108px;background-position:-1px -1px"></div>`);
+  add(`<div class="abs" style="inset:0;background:radial-gradient(60% 30% at 50% 100%, rgba(180,247,202,.9), transparent 70%),radial-gradient(50% 25% at 85% 10%, rgba(180,247,202,.45), transparent 70%)"></div>`);
+  add(`<div class="abs" style="inset:0;background:radial-gradient(110% 75% at 50% 45%, transparent 60%, rgba(1,58,47,.06))"></div>`);
+ }
+}
+function header(step,label,y=128){
+ const segs=[1,2,3,4].map(i=>`<div style="width:64px;height:5px;border-radius:3px;background:${i<=step?t.acc:t.line}"></div>`).join('');
+ add(`<div class="abs cap" style="left:108px;top:${y}px;color:${t.acc}">0${step} <span style="opacity:.45;margin:0 10px">/</span> <span style="color:${t.fg}">${label}</span></div>
+ <div class="abs" style="right:108px;top:${y+12}px;display:flex;gap:10px">${segs}</div>`);
+}
+// headline: lead (small) + main lines. kw = {text, bg, fg}
+function headline({lead,lines,y,size=128,lead2=48,align='left',x=108,w=864}){
+ add(`<div class="abs" style="left:${x}px;top:${y}px;width:${w}px;text-align:${align};color:${t.fg}">
+  ${lead?`<div style="font-weight:300;font-size:${lead2}px;letter-spacing:-.01em;opacity:.8;margin-bottom:${size*.12}px">${lead}</div>`:''}
+  ${lines.map(l=>`<div style="font-weight:300;font-size:${size}px;line-height:1.02;letter-spacing:-.035em;margin-bottom:${size*.08}px">${l}</div>`).join('')}
+ </div>`);
+}
+const hl=(s,bg=t.hlBg,fg=t.hlFg)=>`<span class="hl" style="background:${bg};color:${fg}">${s}</span>`;
+
+const ptrSVG=(fill,stroke)=>`<svg class="ptr" viewBox="0 0 30 30"><path d="M3 3 L27 12 L16 16 L12 27 Z" fill="${fill}" stroke="${stroke}" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
+function pill(name,x,y,o={}){
+ const sc=o.scale||1, op=o.op??1, blur=o.blur||0;
+ const glow=theme==='dark'?'0 0 0 3px '+t.pillBorder+', 0 0 40px rgba(28,228,155,.55)':'0 0 0 3px #fff, 0 18px 40px rgba(1,58,47,.22)';
+ return `<div class="pill" style="left:${x}px;top:${y}px;background:${t.pillBg};color:${t.pillFg};box-shadow:${glow};transform:translate(-50%,-50%) scale(${sc});opacity:${op};filter:blur(${blur}px)">
+  ${o.ptr!==false?ptrSVG(t.pillBg,t.pillBorder):''}<div class="av" style="background:${t.avBg};color:${t.avFg}">${name[0]}</div>${name}
+  ${o.check?`<svg width="30" height="30" viewBox="0 0 30 30" style="margin-left:2px"><circle cx="15" cy="15" r="14" fill="${t.avBg}"/><path d="M9 15.5l4 4 8-9" fill="none" stroke="${t.avFg}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`:''}
+ </div>`;
+}
+// Junior mark, ring centred at (cx,cy); w = width of mark image (ring dia = w*337/411)
+function mark(cx,cy,w,src=t.mark,op=1){
+ const s=w/411; return `<img class="abs" src="${A+src}" style="left:${cx-168.5*s}px;top:${cy-168.5*s}px;width:${w}px;opacity:${op}">`;
+}
+function construction(cx,cy,R,extra=''){ // hairline construction circles (anmoldoesmotion ref)
+ return `<svg class="abs" style="left:0;top:0" width="1080" height="1920">
+  ${[R*0.6,R,R*1.45,R*2.05].map((r,i)=>`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${t.line}" stroke-width="${i==1?2:1.5}" ${i==3?'stroke-dasharray="4 10"':''}/>`).join('')}
+  <line x1="0" y1="${cy}" x2="1080" y2="${cy}" stroke="${t.line}" stroke-width="1.5"/>
+  <line x1="${cx}" y1="${cy-R*2.3}" x2="${cx}" y2="${cy+R*2.3}" stroke="${t.line}" stroke-width="1.5"/>${extra}</svg>`;
+}
+const P=(cx,cy,r,deg)=>[cx+r*Math.cos(deg*Math.PI/180), cy+r*Math.sin(deg*Math.PI/180)];
+
+// ---------- SCENES (designed in a 1080 x 1080 local box) ----------
+function sceneWrap(top,scale,inner){ add(`<div class="abs" style="left:0;top:${top}px;width:1080px;height:1080px;transform:scale(${scale});transform-origin:50% 0">${inner}</div>`); }
+
+function attractScene(){
+ const cx=540,cy=540; let s='';
+ s+=construction(cx,cy,190).replace('class="abs" style="left:0;top:0" width="1080" height="1920"','class="abs" style="left:0;top:0" width="1080" height="1080"');
+ // incoming trails
+ const trails=[[-120,120, 250,330],[1200,60, 830,300],[1220,900, 850,760],[-140,980, 230,770],[540,-160, 540,215]];
+ s+=`<svg class="abs" style="left:0;top:0" width="1080" height="1080"><defs>${trails.map((tr,i)=>`<linearGradient id="g${i}" gradientUnits="userSpaceOnUse" x1="${tr[0]}" y1="${tr[1]}" x2="${tr[2]}" y2="${tr[3]}"><stop offset="0" stop-color="${t.acc}" stop-opacity="0"/><stop offset="1" stop-color="${t.acc}" stop-opacity=".9"/></linearGradient>`).join('')}</defs>
+  ${trails.map((tr,i)=>{const mx=(tr[0]+tr[2])/2+(i%2?90:-90),my=(tr[1]+tr[3])/2+(i%2?-80:80);return `<path d="M${tr[0]} ${tr[1]} Q${mx} ${my} ${tr[2]} ${tr[3]}" fill="none" stroke="url(#g${i})" stroke-width="${i==4?3:5}" stroke-linecap="round"/>`}).join('')}
+  <circle cx="${cx}" cy="${cy}" r="285" fill="none" stroke="${t.lineStrong}" stroke-width="2" stroke-dasharray="2 14" stroke-linecap="round"/></svg>`;
+ s+=mark(cx,cy+0,300);
+ s+=pill('Sally',250,330,{});
+ s+=pill('John',830,300,{scale:.92});
+ s+=pill('Kate',850,760,{scale:.96});
+ s+=pill('Priya',230,770,{scale:.9,op:.92});
+ s+=pill('Marco',540,215,{scale:.78,op:.55,blur:2.5,ptr:false});
+ return s;
+}
+function retainScene(){
+ const cx=540,cy=540; let s='';
+ const R1=270,R2=400;
+ const pts=[[R1,-90,'Sally'],[R1,30,'John'],[R1,150,'Kate'],[R2,-30,'Priya'],[R2,90,'Marco'],[R2,210,'Ava']];
+ s+=`<svg class="abs" style="left:0;top:0" width="1080" height="1080">
+  <circle cx="${cx}" cy="${cy}" r="${R1}" fill="none" stroke="${t.line}" stroke-width="2"/>
+  <circle cx="${cx}" cy="${cy}" r="${R2}" fill="none" stroke="${t.line}" stroke-width="2"/>
+  ${pts.map(([r,d])=>{const [x,y]=P(cx,cy,r,d);return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${t.lineStrong}" stroke-width="2" stroke-dasharray="3 9" stroke-linecap="round"/>`}).join('')}
+  ${pts.map(([r,d])=>{const a1=(d-38)*Math.PI/180,a2=(d-4)*Math.PI/180;return `<path d="M${cx+r*Math.cos(a1)} ${cy+r*Math.sin(a1)} A${r} ${r} 0 0 1 ${cx+r*Math.cos(a2)} ${cy+r*Math.sin(a2)}" fill="none" stroke="${t.acc}" stroke-width="5" stroke-linecap="round" opacity=".85"/>`}).join('')}
+ </svg>`;
+ s+=`<div class="abs" style="left:${cx-200}px;top:${cy-200}px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle, ${theme==='dark'?'rgba(28,228,155,.28)':'rgba(180,247,202,.8)'}, transparent 70%)"></div>`;
+ s+=mark(cx,cy,250);
+ pts.forEach(([r,d,n],i)=>{const [x,y]=P(cx,cy,r,d); s+=pill(n,x,y,{ptr:false,check:true,scale:r===R1?.95:.82});});
+ return s;
+}
+function uiCard(){ // simplified Juno Preparer dashboard (from their product video)
+ const rows=[['Daisy Duck','Passed'],['Gathering Thyme LLC','Passed'],['Riverside Holdings','Review'],['Mickey & Co.','Passed'],['Donald Studio','Passed']];
+ return `<div style="width:720px;height:500px;border-radius:28px;background:${t.card};box-shadow:0 0 0 2px rgba(28,228,155,.5), 0 40px 120px rgba(0,0,0,.35);overflow:hidden;display:flex;font-family:Outfit">
+  <div style="width:150px;background:${C.off};border-right:1px solid rgba(1,58,47,.08);padding:26px 18px">
+   <img src="${A}logo_duo_dark.png" style="width:96px;margin-bottom:30px">
+   ${['Preparer','Reviewer','Assistant','Advisor'].map((n,i)=>`<div style="font-size:17px;padding:10px 12px;border-radius:10px;margin-bottom:6px;${i==0?`background:${C.dark};color:${C.off}`:`color:${C.dark}`}">${n}</div>`).join('')}
+  </div>
+  <div style="flex:1;padding:26px 28px;color:${C.dark}">
+   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><div style="font-size:24px;font-weight:500">Preparer Dashboard</div><div style="font-size:15px;background:${C.green};padding:8px 16px;border-radius:999px;font-weight:500">+ Start Tax Prep</div></div>
+   <div style="display:flex;font-size:13px;letter-spacing:.08em;text-transform:uppercase;opacity:.5;padding:0 6px 10px;border-bottom:1px solid rgba(1,58,47,.1)"><div style="flex:1">Client</div><div style="width:80px">Year</div><div style="width:120px">Status</div></div>
+   ${rows.map(([n,s])=>`<div style="display:flex;align-items:center;font-size:18px;padding:15px 6px;border-bottom:1px solid rgba(1,58,47,.07)"><div style="flex:1;display:flex;align-items:center;gap:10px"><div style="width:26px;height:26px;border-radius:50%;background:${C.light}"></div>${n}</div><div style="width:80px;opacity:.6">2025</div><div style="width:120px"><span style="font-size:14px;padding:5px 12px;border-radius:999px;background:${s=='Passed'?'rgba(28,228,155,.22)':'rgba(1,58,47,.08)'};color:${C.dark}">${s=='Passed'?'✓ Passed':'In review'}</span></div></div>`).join('')}
+  </div></div>`;
+}
+function growScene(){
+ const cx=540,cy=560; let s='';
+ s+=`<svg class="abs" style="left:0;top:0" width="1080" height="1080">
+  <ellipse cx="${cx}" cy="${cy}" rx="500" ry="250" fill="none" stroke="${t.line}" stroke-width="2"/>
+  <ellipse cx="${cx}" cy="${cy}" rx="500" ry="250" fill="none" stroke="${t.acc}" stroke-width="5" stroke-dasharray="180 1400" stroke-dashoffset="-260" stroke-linecap="round"/>
+ </svg>`;
+ s+=`<div class="abs" style="left:${cx-360}px;top:${cy-250}px;transform:perspective(1800px) rotateX(16deg) rotateY(-20deg) rotateZ(3deg)">${uiCard()}</div>`;
+ s+=pill('Sally',470,505,{scale:.82});
+ s+=pill('John',600,690,{scale:.82});
+ s+=pill('Kate',800,560,{scale:.82});
+ const icons=[['icon_typewriter.png','Assistant',105,790],['icon_chess.png','Advisor',975,800],['icon_stamp.png','Reviewer',930,150]];
+ icons.forEach(([src,l,x,y])=>{ s+=`<div class="abs" style="left:${x-95}px;top:${y-95}px;width:190px;text-align:center"><img src="${A+src}" style="width:190px;filter:drop-shadow(0 22px 30px rgba(0,0,0,${theme==='dark'?.45:.18}))"><div class="cap" style="font-size:20px;color:${t.fg};margin-top:-6px">${l}</div></div>`; });
+ // stat chips
+ s+=`<div class="abs" style="left:70px;top:120px;display:flex;flex-direction:column;gap:14px">
+  <div style="background:${t.chipBg};border:1.5px solid ${t.chipBorder};color:${t.chipFg};border-radius:22px;padding:16px 24px;backdrop-filter:blur(12px)"><div class="cap" style="font-size:18px;opacity:.7">New hires</div><div style="font-size:54px;font-weight:300;line-height:1">0</div></div>
+  <div style="background:${t.chipBg};border:1.5px solid ${t.chipBorder};color:${t.chipFg};border-radius:22px;padding:16px 24px;backdrop-filter:blur(12px)"><div class="cap" style="font-size:18px;opacity:.7">Capacity</div>
+   <div style="display:flex;align-items:flex-end;gap:7px;height:56px;margin-top:6px">${[18,26,34,46,56].map((h,i)=>`<div style="width:16px;height:${h}px;border-radius:4px;background:${i==4?C.green:(theme==='dark'?'rgba(180,247,202,.45)':'rgba(1,58,47,.25)')}"></div>`).join('')}</div></div></div>`;
+ return s;
+}
+function problemType(y,size){
+ const strike=`<span style="position:relative;display:inline-block">${hl('problem.',C.red,'#3a0d0d')}
+   <span class="abs" style="left:-3%;right:-3%;top:47%;height:${size*.11}px;background:${C.green};border-radius:99px;transform:rotate(-3deg);box-shadow:0 0 30px rgba(28,228,155,.7)"></span>
+   <svg class="abs" style="right:-70px;bottom:-60px;width:64px;height:64px" viewBox="0 0 30 30"><path d="M3 3 L27 12 L16 16 L12 27 Z" fill="${theme==='dark'?C.off:C.dark}" stroke="${theme==='dark'?C.dark:'#fff'}" stroke-width="2" stroke-linejoin="round"/></svg></span>`;
+ headline({lead:'Your talent',lines:[`isn't the`,strike],y,size,lead2:size*.62});
+}
+
+// ---------- FRAMES ----------
+function speakerCard(top=1060,h=680){
+ const border=theme==='dark'?'0 0 0 2px rgba(180,247,202,.35), 0 30px 90px rgba(0,0,0,.45)':'0 0 0 2px #fff, 0 30px 80px rgba(1,58,47,.22)';
+ add(`<div class="abs" style="left:60px;top:${top}px;width:960px;height:${h}px;border-radius:44px;overflow:hidden;box-shadow:${border}">
+  <img src="${A}speaker.jpg" style="width:100%;height:100%;object-fit:cover;object-position:50% 34%">
+  <div class="abs" style="inset:0;background:linear-gradient(180deg,transparent 60%,rgba(1,58,47,.55))"></div>
+  <img class="abs" src="${A}logo_light.png" style="right:40px;bottom:36px;width:150px;opacity:.75">
+ </div>`);
+}
+function orbitBehind(top){ // orbit arc passes behind the speaker card (depth, editlobby ref)
+ add(`<svg class="abs" style="left:0;top:0" width="1080" height="1920"><ellipse cx="540" cy="${top}" rx="620" ry="120" fill="none" stroke="${t.lineStrong}" stroke-width="2"/><ellipse cx="540" cy="${top}" rx="620" ry="120" fill="none" stroke="${t.acc}" stroke-width="5" stroke-dasharray="140 3000" stroke-dashoffset="-80" stroke-linecap="round"/></svg>`);
+}
+const FR={
+ fs1(){bg();header(1,'Attract');headline({lead:"They'll attract",lines:[hl('talent')],y:250,size:150,lead2:84});sceneWrap(700,1,attractScene());bug();},
+ fs2(){bg();header(2,'Retain');headline({lead:"They'll retain",lines:[hl('talent')],y:250,size:150,lead2:84});sceneWrap(700,1,retainScene());bug();},
+ fs3(){bg();header(3,'Grow');headline({lead:"and they'll grow",lines:[hl('without hiring')],y:250,size:130,lead2:84});sceneWrap(700,1,growScene());bug();},
+ fs4(){bg();header(4,'Reframe');add(construction(540,1700,240));problemType(640,170);bug();},
+ ss1(){bg();header(1,'Attract',110);headline({lead:"They'll attract",lines:[hl('talent')],y:200,size:110,lead2:62});orbitBehind(1080);sceneWrap(470,.56,attractScene());speakerCard();},
+ ss2(){bg();header(2,'Retain',110);headline({lead:"They'll retain",lines:[hl('talent')],y:200,size:110,lead2:62});orbitBehind(1080);sceneWrap(470,.56,retainScene());speakerCard();},
+ ss3(){bg();header(3,'Grow',110);headline({lead:"and they'll grow",lines:[hl('without hiring')],y:200,size:100,lead2:62});orbitBehind(1080);sceneWrap(470,.56,growScene());speakerCard();},
+ ss4(){bg();header(4,'Reframe',110);problemType(330,128);orbitBehind(1080);speakerCard();},
+ lt(){ // full-bleed speaker + lower third
+  add(`<img class="abs" src="${A}speaker.jpg" style="left:0;top:0;width:1080px;height:1920px;object-fit:cover;object-position:50% 30%">`);
+  add(`<div class="abs" style="left:0;right:0;bottom:0;height:900px;background:linear-gradient(180deg,transparent,rgba(1,58,47,.85))"></div>`);
+  const dark=theme==='dark';
+  add(`<div class="abs" style="left:72px;top:1390px;display:flex;align-items:stretch;border-radius:26px;overflow:hidden;backdrop-filter:blur(18px);background:${dark?'rgba(1,58,47,.62)':'rgba(248,249,250,.88)'};box-shadow:0 20px 60px rgba(0,0,0,.25)">
+   <div style="width:10px;background:${C.green}"></div>
+   <div style="padding:30px 46px 32px 34px">
+    <div style="font-size:66px;font-weight:400;letter-spacing:-.02em;color:${dark?C.off:C.dark};line-height:1.05">Dave Haase</div>
+    <div style="font-size:40px;font-weight:300;color:${dark?C.light:'rgba(1,58,47,.7)'};margin-top:8px">CPA &amp; Founder, Juno</div>
+   </div></div>`);
+  add(`<img class="abs" src="${A}${dark?'logo_light.png':'logo_white.png'}" style="right:72px;top:1660px;width:180px;opacity:.75">`);
+ },
+ end(){
+  if(theme==='dark') add(`<div class="abs" style="inset:0;background:${C.dark}"></div><div class="abs" style="inset:0;background:radial-gradient(70% 30% at 50% 50%, rgba(28,228,155,.18), transparent 70%)"></div>`+grainSVG());
+  else bg();
+  const w=360,h=w*337/1327,y=960-h/2;
+  const ghost=theme==='dark'?'logo_white.png':'logo_dark.png';
+  add(`<img class="abs" src="${A+ghost}" style="left:${540-w/2-w-60}px;top:${y}px;width:${w}px;opacity:${theme==='dark'?.08:.07}">
+       <img class="abs" src="${A+ghost}" style="left:${540+w/2+60}px;top:${y}px;width:${w}px;opacity:${theme==='dark'?.08:.07}">
+       <img class="abs" src="${A}${theme==='dark'?'logo_green.png':'logo_duo_dark.png'}" style="left:${540-w/2}px;top:${y}px;width:${w}px">
+       <div class="abs cap" style="left:0;right:0;top:${y+h+120}px;text-align:center;font-size:28px;color:${theme==='dark'?C.light:C.dark};opacity:.8">File Better. Feel Better.</div>`);
+ }
+};
+function bug(){ add(`<img class="abs" src="${A}${theme==='dark'?'logo_light.png':'logo_dark.png'}" style="right:108px;top:1700px;width:150px;opacity:.75">`); }
+FR[frame]();
+document.fonts.ready.then(()=>{document.body.dataset.ready=1});
+</script></body></html>
