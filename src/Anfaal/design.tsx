@@ -269,7 +269,7 @@ export const TwoTier: React.FC<{
       ? { fontFamily: "Inter", fontWeight: 300, fontStyle: "italic", fontSize: 46 * scale, color: K.soft, letterSpacing: -0.5 }
       : variant === "B"
         ? { fontFamily: "Instrument Serif", fontStyle: "italic", fontSize: 62 * scale, color: K.soft }
-        : { fontFamily: "Inter", fontWeight: 600, fontSize: 30 * scale, color: K.soft, letterSpacing: 8, textTransform: "uppercase" };
+        : { fontFamily: "Inter", fontWeight: 700, fontSize: 34 * scale, color: K.white, letterSpacing: 6, textTransform: "uppercase" };
   const keyStyle: React.CSSProperties =
     variant === "A"
       ? { fontFamily: "Nunito", fontWeight: 900, fontSize: 112 * scale, letterSpacing: -2, lineHeight: 1.02 }
