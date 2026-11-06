@@ -62,7 +62,9 @@ Approved by the client in November 2026. Reference frames are in `../examples/`,
 5. **Workflow network (system / process / Juno):** the dots move to a six-point star (r420) around the window and spokes draw from its centre behind it.
 6. **Strike / unstrike (reframe a negative):** the strike draws on the negative word and it dims.
    For a reversal, the strike slides off, the word returns to full white and the green period lands.
-7. **End card (when asked):** Juno Black background, `logo_green.png` at 1/3 of the width (360px), centred vertically.
+7. **Logo sting / end card:** use `template/JunoLogo.tsx` (the junior-orbits-senior story).
+   The vector ring and period are measured to match `mark_green.png` (ring R 168/99, dot r 36.5 at +204,+132.5).
+   They hand over to the file through a 6-frame crossfade, then the logo file takes over at the dock. Static alternative: Juno Black background, `logo_green.png` at 1/3 of the width (360px), centred vertically.
 
 The **lever** flips (±76°, SPRING, 0.75s) on every beat change and on the strike and unstrike.
 The **arc** draws on at the first beat change and its dot travels along it continuously.
