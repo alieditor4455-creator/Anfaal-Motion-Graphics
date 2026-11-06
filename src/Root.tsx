@@ -10,7 +10,7 @@ import { AnfaalReel4, R4_FRAMES } from "./Anfaal4/Reel";
 import { AnfaalReel4Cover } from "./Anfaal4/Cover";
 import { AnfaalReel5, R5_FRAMES } from "./Anfaal5/Reel";
 import { AnfaalReel5Cover } from "./Anfaal5/Cover";
-import { JunoDark, JUNO_FRAMES, JUNO_FPS } from "./Juno/Motion";
+import { JunoDark, JunoNoDave, JUNO_FRAMES, JUNO_FPS } from "./Juno/Motion";
 
 export const RemotionRoot: React.FC = () => (
   <>
@@ -25,6 +25,7 @@ export const RemotionRoot: React.FC = () => (
     <Still id="AnfaalReel3Cover" component={AnfaalReel3Cover} width={1080} height={1920} />
     <Still id="AnfaalReel2Cover" component={AnfaalReel2Cover} width={1080} height={1920} />
     <Still id="AnfaalCoverTransform" component={AnfaalCoverTransform} width={1080} height={1920} />
+    <Composition id="JunoNoDave" component={JunoNoDave} durationInFrames={JUNO_FRAMES} fps={JUNO_FPS} width={1080} height={1920} />
     <Composition id="JunoDark" component={JunoDark} durationInFrames={JUNO_FRAMES} fps={JUNO_FPS} width={1080} height={1920} />
   </>
 );

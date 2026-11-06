@@ -1,5 +1,5 @@
 // Juno — "They'll attract talent, they'll retain talent, and they'll grow without hiring. Your talent isn't the problem."
-// 9:16, 30fps, dark theme. The graphic world fills the screen from first to last frame; Dave only ever
+// 9:16, 60fps, Juno Black (#1E1E1E) background. The graphic world fills the screen from first to last frame; Dave only ever
 // appears inside the window: storefront (attract) -> hanging frame + orbit (retain) -> storefront + INBOX,
 // same six dots as work packets (grow without hiring) -> centred window, dots regroup into a calm grid
 // beside him, green strike on "problem" (no red).
@@ -7,8 +7,8 @@ import React from "react";
 import { AbsoluteFill, Audio, Easing, Img, interpolate, staticFile, useCurrentFrame } from "remotion";
 import { loadFont } from "@remotion/fonts";
 
-export const JUNO_FPS = 30;
-export const JUNO_FRAMES = Math.round(8.2 * JUNO_FPS);
+export const JUNO_FPS = 60; // 60fps for fluid motion
+export const JUNO_FRAMES = Math.round(9.9 * JUNO_FPS);
 const SRC_FPS = 24, SRC_N = 184;
 
 [["Outfit", 400, "Outfit-400"], ["Outfit", 700, "Outfit-700"], ["Caveat", 500, "Caveat-500"]].forEach(([family, weight, f]) =>
@@ -25,8 +25,8 @@ const mix = (a: number, b: number, p: number) => a + (b - a) * p;
 const vis = (t: number, i0: number, i1: number, o0: number, o1: number, e = GLIDE) => pr(t, i0, i1, e) * (1 - pr(t, o0, o1, SWAP));
 
 const T = {
-  bg: "#043329", green: "#1CE49B", ink: "#F8F9FA", soft: "rgba(248,249,250,.78)",
-  line: "rgba(180,247,202,.55)", hair: "rgba(180,247,202,.25)", grid: "rgba(180,247,202,.035)",
+  bg: "#1E1E1E", green: "#1CE49B", ink: "#F8F9FA", soft: "rgba(248,249,250,.78)",
+  line: "rgba(180,247,202,.55)", hair: "rgba(180,247,202,.25)", grid: "rgba(248,249,250,.03)",
   winOn: "#1CE49B", winOff: "rgba(28,228,155,.18)", bldFill: "rgba(28,228,155,.06)",
 };
 
@@ -49,22 +49,29 @@ const ORB_BASE = [-90, -150, 150, -30, 30, 90]; // each dot keeps to its own sid
 const orbit = (i: number, t: number) => { const a = ((ORB_BASE[i] + 8 * (t - 1.25)) * Math.PI) / 180; return [ORB.x + ORB.R * Math.cos(a), ORB.y + ORB.R * Math.sin(a)]; };
 const LINES = [[[470, 1030], [640, 960]], [[470, 1125], [640, 1125]], [[470, 1220], [640, 1290]]];
 const FIN = [[190, 840], [190, 1015], [190, 1190], [890, 840], [890, 1015], [890, 1190]]; // calm grid beside him
+const HUB = { x: 540, y: 1015 }; // centre of the final window
+const NET_A = [-150, -90, 150, -30, 90, 30];  // workflow network (prototype frame 2)
+const netP = (i: number) => { const a = (NET_A[i] * Math.PI) / 180; return [HUB.x + 420 * Math.cos(a), HUB.y + 420 * Math.sin(a)]; };
 type Dot = { x: number; y: number; r: number; o: number };
 const packet = (i: number, t: number): Dot => {
-  const L = LINES[i % 3]; const u = ((t - 3.35) * 0.8 + (i < 3 ? 0 : 0.5)) % 1;
-  return { x: mix(L[0][0], L[1][0], u), y: mix(L[0][1], L[1][1], u), r: 17, o: Math.min(1, u / 0.12, (1 - u) / 0.12) };
+  const L = LINES[i % 3]; const u0 = i < 3 ? 0 : 0.5;
+  const u = mix(u0, i < 3 ? 0.9 : 0.97, interpolate(t, [3.35, 4.35], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.sin) }));
+  return { x: mix(L[0][0], L[1][0], u), y: mix(L[0][1], L[1][1], u), r: 17, o: 1 };
 };
 const dotAt = (i: number, t: number): Dot => {
   const a1 = A1[i]; const ang = Math.atan2(a1[1] - C0.y, a1[0] - C0.x);
   const s = [a1[0] + Math.cos(ang) * 900, a1[1] + Math.sin(ang) * 900];
-  const st = 0.1 + i * 0.07;
-  if (t < 1.25) { const p = pr(t, st, st + 1.1, GLIDE); return { x: mix(s[0], a1[0], p), y: mix(s[1], a1[1], p), r: 56, o: t < st ? 0 : 1 }; }
-  if (t < 2.6) { const p = pr(t, 1.25, 2.1, MOVE); const o = orbit(i, t); return { x: mix(a1[0], o[0], p), y: mix(a1[1], o[1], p), r: 56, o: 1 }; }
-  if (t < 3.35) { const L = LINES[i % 3]; const p = pr(t, 2.6, 3.35, MOVE); const o = orbit(i, 2.6); return { x: mix(o[0], L[0][0], p), y: mix(o[1], L[0][1], p), r: mix(56, 17, p), o: 1 }; }
+  const st = 0.05 + i * 0.05;
+  const att = (tt: number) => { const p = pr(tt, st, st + 0.95, GLIDE); return [mix(s[0], a1[0], p), mix(s[1], a1[1], p)]; };
+  if (t < 1.25) { const a = att(t); return { x: a[0], y: a[1], r: 56, o: t < st ? 0 : 1 }; }
+  if (t < 2.6) { const a = att(1.25); const p = pr(t, 1.25, 2.1, MOVE); const o = orbit(i, t); return { x: mix(a[0], o[0], p), y: mix(a[1], o[1], p), r: 56, o: 1 }; }
+  if (t < 3.35) { const tgt = packet(i, 3.35); const p = pr(t, 2.6, 3.35, MOVE); const o = orbit(i, 2.6); return { x: mix(o[0], tgt.x, p), y: mix(o[1], tgt.y, p), r: mix(56, 17, p), o: 1 }; }
   if (t < 4.35) return packet(i, t);
-  const from = packet(i, 4.35); const p = pr(t, 4.35 + i * 0.04, 5.3 + i * 0.04, MOVE);
+  const from = packet(i, 4.35); const p = pr(t, 4.35, 5.3 + i * 0.04, MOVE);
   const pulse = 1 + 0.18 * Math.sin(Math.PI * pr(t, 7.0, 7.6, Easing.linear));
-  return { x: mix(from.x, FIN[i][0], p), y: mix(from.y, FIN[i][1], p), r: mix(17, 52, p) * pulse, o: Math.max(from.o, p) };
+  const g = { x: mix(from.x, FIN[i][0], p), y: mix(from.y, FIN[i][1], p), r: mix(17, 52, p) * pulse };
+  const q = pr(t, 8.0 + i * 0.03, 8.9 + i * 0.03, MOVE); const n = netP(i);
+  return { x: mix(g.x, n[0], q), y: mix(g.y, n[1], q), r: mix(g.r, 46, q), o: 1 };
 };
 
 // ---- text: two centred lines with soft masked rolls ----
@@ -82,7 +89,7 @@ const Roll: React.FC<{ t: number; items: [number, React.ReactNode][]; cls: React
     </div>);
 };
 
-export const JunoMotion: React.FC = () => {
+export const JunoMotion: React.FC<{ dave?: boolean }> = ({ dave = true }) => {
   const f = useCurrentFrame(); const t = f / JUNO_FPS;
   const win = windowAt(t);
   const k = Math.max(win.w / CROP.w, win.h / CROP.h);
@@ -96,15 +103,23 @@ export const JunoMotion: React.FC = () => {
   const store = Math.max(store1, store3);
   const ground1 = vis(t, 0.2, 0.8, 1.25, 1.55, DRAW), ground3 = vis(t, 2.9, 3.4, 4.3, 4.6, DRAW);
   const string = pr(t, 1.3, 1.95, DRAW) * (1 - pr(t, 2.6, 2.9, SWAP));
-  const swing = t > 1.75 && t < 2.9 ? 2.6 * Math.exp(-(t - 1.75) * 1.8) * Math.sin((t - 1.75) * Math.PI * 2 * 0.8) : 0;
+  const swing = t > 1.75 && t < 2.9 ? 2.6 * Math.exp(-(t - 1.75) * 1.8) * Math.sin((t - 1.75) * Math.PI * 2 * 0.8) * (1 - pr(t, 2.55, 2.9, SWAP)) : 0;
   const orbitRing = vis(t, 1.4, 2.1, 2.6, 2.9, DRAW);
   const bld = vis(t, 2.95, 3.6, 4.3, 4.6);
-  const links = vis(t, 3.15, 3.55, 4.3, 4.5, DRAW);
-  const lit = Math.floor(interpolate(t, [3.3, 4.25], [0, 18], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
+  const links = vis(t, 2.95, 3.35, 4.3, 4.5, DRAW);
+  const litF = interpolate(t, [3.3, 4.25], [0, 18], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const accents = Math.max(vis(t, 1.8, 2.3, 4.2, 4.45), pr(t, 5.2, 5.8));
   const note = vis(t, 3.55, 4.0, 4.25, 4.45);
-  const ground4 = pr(t, 5.0, 5.6, DRAW);
-  const footer = pr(t, 7.45, 8.0);
+  const ground4 = pr(t, 5.0, 5.6, DRAW) * (1 - pr(t, 7.9, 8.3, SWAP));
+  const footer = pr(t, 9.05, 9.55);
+  const spokes = pr(t, 8.45, 9.0, DRAW);
+  // "the why" frame elements: lever (flips on every beat change), big arc with travelling dot, shelf
+  const SPRING = Easing.bezier(0.34, 1.22, 0.64, 1);
+  const FLIPS = [1.3, 2.7, 4.5, 7.0, 7.9];
+  const leverIn = pr(t, 0.45, 1.15, GLIDE);
+  const leverAng = -128 + FLIPS.reduce((acc, ft, n) => acc + (n % 2 === 0 ? 76 : -76) * pr(t, ft, ft + 0.75, SPRING), 0);
+  const arc = pr(t, 1.3, 2.3, DRAW);
+  const shelf = vis(t, 1.55, 2.05, 2.6, 2.9);
 
   const awnW = win.w + 90, awnX = win.x - 45, awnH = win.w * 0.27, scH = win.w * 0.09;
   const awnY = win.y - awnH - scH - 6, baseY = win.y + win.h;
@@ -113,11 +128,12 @@ export const JunoMotion: React.FC = () => {
   const main: React.CSSProperties = { fontFamily: "Outfit", fontWeight: 700, fontSize: 124, letterSpacing: "-0.045em", lineHeight: "140px", color: T.ink };
   const G = (s: string) => <>{s}<span style={{ color: T.green }}>.</span></>;
   const isnt = pr(t, 5.5, 5.95);
-  const strike = pr(t, 7.0, 7.4, GLIDE), dim = pr(t, 7.05, 7.55);
+  const strike = pr(t, 7.0, 7.4, GLIDE), unstrike = pr(t, 8.05, 8.5, SWAP), dim = pr(t, 7.05, 7.55) * (1 - pr(t, 8.1, 8.6));
+  const period = pr(t, 8.35, 8.75);
   const problem = (
     <span style={{ position: "relative", display: "inline-block", color: `color-mix(in srgb, ${T.ink} ${100 - dim * 62}%, transparent)` }}>
-      problem
-      <span style={{ position: "absolute", left: "-3%", top: "54%", height: 14, marginTop: -7, width: `${106 * strike}%`, background: T.green, borderRadius: 99, boxShadow: "0 0 24px rgba(28,228,155,.5)" }} />
+      problem<span style={{ color: T.green, opacity: period }}>.</span>
+      {strike * (1 - unstrike) > 0.001 && <span style={{ position: "absolute", left: `${-3 + 106 * unstrike}%`, top: "54%", height: 14, marginTop: -7, width: `${106 * strike * (1 - unstrike)}%`, background: T.green, borderRadius: 99, boxShadow: "0 0 24px rgba(28,228,155,.5)" }} />}
     </span>);
 
   const dots = [0, 1, 2, 3, 4, 5].map((i) => ({ i, d: dotAt(i, t), d0: dotAt(i, Math.max(0, t - 0.1)) }));
@@ -151,14 +167,24 @@ export const JunoMotion: React.FC = () => {
             return (<g opacity={Math.min(1, bld * 1.5)}>
               <rect x={bx} y={by} width={bw} height={hh} rx={18} fill={T.bldFill} stroke={T.green} strokeWidth={6} />
               {bld > 0.6 && [...Array(18)].map((_, n) => { const col = n % 3, row = Math.floor(n / 3); const wy = by0 + 50 + row * 82;
-                return <rect key={n} x={bx + 42 + col * 72} y={wy} width={44} height={44} rx={6} fill={n < lit ? T.winOn : T.winOff} opacity={wy > by ? 1 : 0} />; })}
+                return <rect key={n} x={bx + 42 + col * 72} y={wy} width={44} height={44} rx={6} fill={T.winOff} opacity={wy > by ? 1 : 0} />; })}
+              {bld > 0.6 && [...Array(18)].map((_, n) => { const col = n % 3, row = Math.floor(n / 3); const wy = by0 + 50 + row * 82; const on = Math.max(0, Math.min(1, (litF - n) / 1.5));
+                return on > 0 && wy > by ? <rect key={`on${n}`} x={bx + 42 + col * 72} y={wy} width={44} height={44} rx={6} fill={T.winOn} opacity={on} /> : null; })}
               <g transform={`translate(${bx + bw / 2} ${by - 52}) rotate(-4)`} opacity={pr(t, 3.4, 3.7)}>
                 <rect x={-110} y={-30} width={220} height={60} rx={6} fill={T.bg} stroke={T.ink} strokeWidth={3} />
                 <text x={0} y={11} textAnchor="middle" fontFamily="Outfit" fontWeight={700} fontSize={30} letterSpacing={4} fill={T.ink}>INBOX</text>
               </g></g>);
           })()}
+          {arc > 0 && <>
+            <circle cx={1190} cy={470} r={330} fill="none" stroke={T.green} strokeWidth={3} opacity={0.85}
+              strokeDasharray={2 * Math.PI * 330} strokeDashoffset={2 * Math.PI * 330 * (1 - arc)} transform="rotate(120 1190 470)" />
+            {(() => { const a = ((150 - 6 * (t - 1.3)) * Math.PI) / 180; return <circle cx={1190 + 330 * Math.cos(a)} cy={470 + 330 * Math.sin(a)} r={17} fill={T.green} opacity={pr(t, 2.0, 2.4)} />; })()}
+            <circle cx={140} cy={640} r={18} fill="none" stroke={T.green} strokeWidth={3} opacity={pr(t, 2.1, 2.5)} />
+          </>}
+          {shelf > 0 && <rect x={540 - (W2.w / 2 + 70) * shelf} y={W2.y + W2.h + 46} width={(W2.w + 140) * shelf} height={14} rx={3} fill="rgba(248,249,250,.16)" />}
+          {spokes > 0 && [0, 1, 2, 3, 4, 5].map((i) => { const n = netP(i); return <line key={`s${i}`} x1={HUB.x} y1={HUB.y} x2={mix(HUB.x, n[0], spokes)} y2={mix(HUB.y, n[1], spokes)} stroke={T.line} strokeWidth={3} />; })}
           {accents > 0 && <g opacity={accents} stroke={T.green} strokeWidth={3} fill="none">
-            <circle cx={900} cy={640} r={22} /><rect x={170} y={1530} width={30} height={30} transform="rotate(45 185 1545)" /></g>}
+            <rect x={170} y={1530} width={30} height={30} transform="rotate(45 185 1545)" /></g>}
         </svg>
 
         {/* dots stay behind the window so a path never crosses Dave */}
@@ -169,7 +195,11 @@ export const JunoMotion: React.FC = () => {
           {string > 0 && <div style={{ position: "absolute", left: 538, top: 0, width: 4, height: W2.y * string, background: T.hair }} />}
           <div style={{ position: "absolute", left: win.x, top: win.y, width: win.w, height: win.h, overflow: "hidden", borderRadius: 10,
             boxShadow: `0 0 0 8px ${T.green}, 0 30px 80px rgba(0,0,0,.35)`, opacity: intro, transform: `scale(${mix(0.9, 1, intro)})` }}>
-            <Img src={staticFile(`juno/raw/f${String(idx).padStart(4, "0")}.jpg`)} style={{ position: "absolute", left: imgL, top: imgT, width: 1080 * k, height: 1920 * k }} />
+            {dave ? <Img src={staticFile(`juno/raw/f${String(idx).padStart(4, "0")}.jpg`)} style={{ position: "absolute", left: imgL, top: imgT, width: 1080 * k, height: 1920 * k }} />
+              : <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 50% 45%, #2b2b2b 0%, #171717 75%)", display: "grid", placeItems: "center" }}>
+                  {/* Junior Mark as the hub (provided lockup, unrecoloured); breathes on the strike */}
+                  <Img src={staticFile("juno/mark_green.png")} style={{ width: win.w * 0.52, transform: `scale(${1 + 0.06 * Math.sin(Math.PI * pr(t, 7.0, 7.6, Easing.linear))})` }} />
+                </div>}
           </div>
         </AbsoluteFill>
 
@@ -189,10 +219,17 @@ export const JunoMotion: React.FC = () => {
           same team, more capacity
           <svg width={200} height={130} style={{ position: "absolute", left: 120, top: 62, overflow: "visible" }}>
             <path d="M10 6 C 0 60, 40 100, 110 112" fill="none" stroke={T.ink} strokeWidth={3.5} strokeLinecap="round" strokeDasharray={160} strokeDashoffset={160 * (1 - pr(t, 3.75, 4.15, DRAW))} />
-            {t > 4.1 && <path d="M86 98 L110 112 L88 126" fill="none" stroke={T.ink} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />}
+            {t > 4.05 && <path opacity={pr(t, 4.05, 4.25)} d="M86 98 L110 112 L88 126" fill="none" stroke={T.ink} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />}
           </svg></div>}
       </AbsoluteFill>
 
+      {leverIn > 0 && (() => { const bx = 885, by = 1920 - 120 + (1 - leverIn) * 260, L = 210; const a = (leverAng * Math.PI) / 180;
+        const tx = bx + L * Math.cos(a), ty = by - 40 + L * Math.sin(a);
+        return <svg width={1080} height={1920} style={{ position: "absolute", inset: 0, overflow: "visible" }}>
+          <line x1={bx} y1={by - 40} x2={tx} y2={ty} stroke="rgba(248,249,250,.55)" strokeWidth={6} strokeLinecap="round" />
+          <circle cx={tx} cy={ty} r={20} fill={T.green} />
+          <path d={`M${bx - 125} ${by + 85} A125 125 0 0 1 ${bx + 125} ${by + 85} Z`} fill={T.green} />
+        </svg>; })()}
       {footer > 0 && <div style={{ position: "absolute", left: 0, right: 0, top: 1720, textAlign: "center", opacity: footer, transform: `translateY(${(1 - footer) * 14}px)`, fontFamily: "Outfit", fontWeight: 400, fontSize: 26, letterSpacing: "0.14em", color: T.soft }}>JUNO HANDLES · YOU ADVISE</div>}
 
       {/* two centred lines */}
@@ -200,6 +237,7 @@ export const JunoMotion: React.FC = () => {
         <Roll t={t} h={84} cls={lead} items={[
           [0.05, "they'll attract"], [1.3, "they'll retain"], [2.7, "and they'll grow"],
           [4.55, <>your talent <span style={{ opacity: isnt, display: "inline-block", transform: `translateY(${(1 - isnt) * 24}px)` }}>isn't the</span></>],
+          [7.9, "your workflow is the"],
         ]} />
         <Roll t={t} h={146} cls={main} items={[
           [0.45, G("talent")], [3.25, G("without hiring")], [4.5, null], [6.55, problem],
@@ -209,3 +247,4 @@ export const JunoMotion: React.FC = () => {
   );
 };
 export const JunoDark: React.FC = () => <JunoMotion />;
+export const JunoNoDave: React.FC = () => <JunoMotion dave={false} />;
