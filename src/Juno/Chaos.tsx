@@ -42,9 +42,9 @@ const windowAt = (t: number) => { let r = WC; for (const [a, b, A, B] of SEG) { 
 
 // ---- beat 1: timer ring ----
 const RC = { x: 540, y: 1015 }, RR = 430;
-const wind = (t: number) => 360 * 2.6 * pr(t, 0.3, 1.45, Easing.in(Easing.quad)); // accelerating degrees
+const wind = (t: number) => 360 * 1.15 * pr(t, 0.25, 1.5, Easing.inOut(Easing.sin)); // one calm sweep, starts and ends at rest
 const BASE = [-90, -30, 30, 90, 150, 210];
-const ringDot = (i: number, t: number) => { const a = ((BASE[i] + 0.35 * wind(t)) * Math.PI) / 180; return [RC.x + RR * Math.cos(a), RC.y + RR * Math.sin(a)]; };
+const ringDot = (i: number, t: number) => { const a = ((BASE[i] + 0.22 * wind(t)) * Math.PI) / 180; return [RC.x + RR * Math.cos(a), RC.y + RR * Math.sin(a)]; };
 
 // ---- beat 2: INBOX building, packets, roof pile ----
 const FX = 630, FY = 840, FWD = 260, FHT = 340, BYB = WL.y + WL.h + 30; // front form box, ground at BYB
@@ -53,20 +53,19 @@ const LINES = [[[450, 930], [630, 930]], [[450, 1030], [630, 1030]], [[450, 1130
 const PILE = [0, 1, 2, 3, 4, 5].map((r) => [FX + 30, ROWY(r) + 9]); // field start on the front form
 type Dot = { x: number; y: number; r: number };
 const packetPhase = (i: number, t: number): Dot => {
-  const L = LINES[i % 3], start = ringDot(i, 1.45);
-  const a = pr(t, 1.45, 1.9, MOVE);                                       // ring -> line start
-  const st = 1.9 + i * 0.05, b = pr(t, st, st + 0.35, MOVE);             // along the line
-  const c = pr(t, st + 0.35, st + 0.62, MOVE);                            // up onto the pile
-  let x = mix(start[0], L[0][0], a), y = mix(start[1], L[0][1], a);
-  x = mix(x, L[1][0], b); y = mix(y, L[1][1], b);
-  x = mix(x, PILE[i][0], c); y = mix(y, PILE[i][1], c);
-  return { x, y, r: mix(46, 17, a) };
+  const L = LINES[i % 3], s0 = ringDot(i, 1.5);
+  const pts = [s0, L[0], L[1], PILE[i]];
+  const seg = pts.slice(1).map((q, n) => Math.hypot(q[0] - pts[n][0], q[1] - pts[n][1])), tot = seg.reduce((a, b) => a + b, 0);
+  const u = pr(t, 1.5 + i * 0.03, 2.35 + i * 0.03, Easing.inOut(Easing.sin)) * tot;
+  let acc = 0, x = pts[3][0], y = pts[3][1];
+  for (let n = 0; n < 3; n++) { if (u <= acc + seg[n]) { const q = (u - acc) / seg[n]; x = mix(pts[n][0], pts[n + 1][0], q); y = mix(pts[n][1], pts[n + 1][1], q); break; } acc += seg[n]; }
+  return { x, y, r: mix(46, 17, pr(t, 1.5, 2.1, Easing.inOut(Easing.sin))) };
 };
 // ---- beat 3: chaos ----
 const DIR = [1, -1, 1, -1, 1, -1], PH = [0.3, 1.7, 2.9, 4.1, 5.2, 0.9];
 // darting around (not through) the window: clashing directions, jittered radius and speed
 const chaosAt = (i: number, t: number) => {
-  const th = (BASE[i] * Math.PI) / 180 + DIR[i] * (1.35 * (t - 2.55)) + 0.3 * Math.sin(1.6 * t + PH[i]);
+  const th = (BASE[i] * Math.PI) / 180 + DIR[i] * (1.0 * (t - 2.55)) + 0.3 * Math.sin(1.6 * t + PH[i]);
   const k = 1 + 0.07 * Math.sin(1.8 * t + i * 1.3);
   return { x: 540 + 400 * k * Math.cos(th), y: 1040 + 420 * k * Math.sin(th) };
 };
@@ -74,10 +73,11 @@ const FIN = [[190, 840], [190, 1015], [190, 1190], [890, 840], [890, 1015], [890
 const dotAt = (i: number, t: number): Dot => {
   if (t < 1.45) { const p = ringDot(i, t); return { x: p[0], y: p[1], r: 46 * pr(t, 0.1 + i * 0.05, 0.6 + i * 0.05) }; }
   if (t < 2.55) return packetPhase(i, t);
-  const pile = packetPhase(i, 2.55), c = chaosAt(i, t);
-  const a = pr(t, 2.55, 3.15, MOVE);
+  const tau = t < 4.45 ? t : 4.45 + 0.35 * Easing.out(Easing.quad)(Math.min(1, (t - 4.45) / 0.7));
+  const pile = packetPhase(i, 2.55), c = chaosAt(i, tau);
+  const a = pr(t, 2.55, 3.25, Easing.inOut(Easing.sin));
   const ch = { x: mix(pile.x, c.x, a), y: mix(pile.y, c.y, a), r: mix(17, 40, a) };
-  const s = pr(t, 4.45, 5.15, MOVE);                                       // settle into the calm grid
+  const s = pr(t, 4.45, 5.15, Easing.inOut(Easing.sin));                                       // settle into the calm grid
   return { x: mix(ch.x, FIN[i][0], s), y: mix(ch.y, FIN[i][1], s), r: mix(ch.r, 50, s) };
 };
 
@@ -102,7 +102,7 @@ export const JunoChaos: React.FC = () => {
   const chaosE = vis(t, 2.8, 3.3, 4.45, 4.85);
   const sway = 0 * chaosE;
 
-  const ring = vis(t, 0.1, 0.7, 1.45, 1.85, DRAW);
+  const ring = vis(t, 0.1, 0.7, 1.5, 2.0, DRAW);
   const w = wind(t), head = -90 + w;
   const cometLen = Math.min(140, 30 + w * 0.12);
   const ticks = [...Array(12)].map((_, n) => -90 + n * 30);
@@ -166,7 +166,7 @@ export const JunoChaos: React.FC = () => {
                 <rect x={cx - FWD / 2} y={cy - FHT / 2} width={FWD} height={FHT} rx={14} fill={T.bg} stroke={n === 2 ? T.green : T.hair} strokeWidth={n === 2 ? 5 : 3} />
                 <text x={cx - FWD / 2 + 28} y={cy - FHT / 2 + 52} fontFamily="Outfit" fontWeight={700} fontSize={30} letterSpacing={3} fill={n === 2 ? T.ink : "rgba(248,249,250,.4)"}>{lab}</text>
                 <line x1={cx - FWD / 2 + 28} y1={cy - FHT / 2 + 74} x2={cx + FWD / 2 - 28} y2={cy - FHT / 2 + 74} stroke={T.hair} strokeWidth={2} />
-                {n === 2 && [0, 1, 2, 3, 4, 5].map((r) => { const y = ROWY(r) + (cy - FY - FHT / 2); const fill = pr(t, 2.27 + r * 0.05, 2.62 + r * 0.05, GLIDE);
+                {n === 2 && [0, 1, 2, 3, 4, 5].map((r) => { const y = ROWY(r) + (cy - FY - FHT / 2); const fill = pr(t, 2.25 + r * 0.03, 2.6 + r * 0.03, GLIDE);
                   return <g key={r}><rect x={FX + 28} y={y} width={FWD - 56} height={18} rx={5} fill="none" stroke="rgba(248,249,250,.16)" strokeWidth={2} />
                     {fill > 0 && <rect x={FX + 28} y={y} width={(FWD - 56) * fill * (0.55 + 0.45 * ((r * 37) % 10) / 10)} height={18} rx={5} fill={T.green} opacity={0.85} />}</g>; })}
               </g>; })}</g>;
