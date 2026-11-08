@@ -18,7 +18,7 @@ export const AnfaalReel6Cover: React.FC = () => (
       <Img key={i} src={staticFile("an6/usd_notes.png")} style={{ position: "absolute", left: b.x, top: b.y, width: b.w, transform: `rotate(${b.r}deg)`, borderRadius: 6, boxShadow: "0 20px 40px rgba(0,0,0,.5)", filter: "saturate(.65) brightness(.95)" }} />
     ))}
     {/* focus brackets around the face */}
-    {sq(400, 920)}{sq(930, 920)}{sq(400, 1620)}{sq(930, 1620)}
+    {sq(230, 880)}{sq(800, 880)}{sq(230, 1640)}{sq(800, 1640)}
     {/* headline block */}
     <div style={{ position: "absolute", left: 0, right: 0, top: 255, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
       <div style={{ padding: "8px 22px", border: "3px solid rgba(255,255,255,.9)", fontFamily: "Inter", fontWeight: 800, fontSize: 34, letterSpacing: 4, color: "#fff", background: "rgba(0,0,0,.35)" }}>JUST 1 TRADE</div>
