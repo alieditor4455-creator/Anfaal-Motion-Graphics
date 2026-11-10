@@ -8,9 +8,12 @@
 import React from "react";
 import { AbsoluteFill, Img, Sequence, interpolate, spring, staticFile, useCurrentFrame } from "remotion";
 import { K, clamp, easeIn, easeInOut, easeOut, mix, p } from "../Anfaal/design";
+import { LINES } from "./words";
 
 const FPS = 30;
-export const R7_DURATION = 87.95;
+/** kept source segments: dead pause 29.40–30.02 and the retake 80.45–82.55 are cut out (jump cuts + zoom punch) */
+export const SEGS: [number, number][] = [[0, 29.4], [30.02, 80.45], [82.55, 87.95]];
+export const R7_DURATION = SEGS.reduce((n, [a, b]) => n + (b - a), 0);
 export const R7_FRAMES = Math.round(R7_DURATION * FPS);
 const s = (t: number) => Math.round(t * FPS);
 const GRAD = `linear-gradient(100deg, ${K.hue} 0%, #9BE07A 45%, ${K.gold} 100%)`;
@@ -65,6 +68,45 @@ const Kinetic: React.FC<{ ph: Phrase }> = ({ ph }) => {
           {ph.hero}
         </div>
       ) : null}
+    </div>
+  );
+};
+
+/** voice-synced kinetic captions: every word blurs up exactly when it is spoken; hero words land big */
+const RED_WORDS = new Set(["sell", "nahi"]);
+const SyncedCaptions: React.FC = () => {
+  const f = useCurrentFrame();
+  const t = f / FPS;
+  const i = LINES.findIndex((l, k) => t >= l.t0 - 0.08 && t < Math.min(LINES[k + 1]?.t0 ?? 1e9, l.t1 + 0.6));
+  if (i < 0) return null;
+  const line = LINES[i];
+  const end = Math.min(LINES[i + 1]?.t0 ?? 1e9, line.t1 + 0.6);
+  const out = p(f, s(end) - 6, 6, easeIn);
+  const small = line.words.filter((w) => !w.hero);
+  const hero = line.words.filter((w) => w.hero);
+  const appear = (wt: number) => p(f, s(wt) - 1, 7, easeOut);
+  const red = hero.some((w) => RED_WORDS.has(w.w.toLowerCase().replace(/[.,?]/g, "")));
+  const hb = hero.length ? soft(f, s(hero[0].t) - 1) : 0;
+  return (
+    <div style={{ position: "absolute", left: 60, right: 60, top: 330, display: "flex", flexDirection: "column", alignItems: "center", opacity: 1 - out, filter: out ? `blur(${out * 10}px)` : undefined }}>
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", columnGap: 12, maxWidth: 920 }}>
+        {small.map((w, k) => {
+          const a = appear(w.t);
+          return <span key={k} style={{ fontFamily: "Inter", fontWeight: 400, fontSize: 50, letterSpacing: -1.5, color: "#fff", opacity: a, filter: `blur(${(1 - a) * 8}px)`, transform: `translateY(${(1 - a) * 18}px)`, display: "inline-block", textShadow: "0 4px 18px rgba(0,0,0,.5)" }}>{w.w}</span>;
+        })}
+      </div>
+      {hero.length ? (
+        <div style={{ display: "flex", gap: 22, marginTop: -6 }}>
+          {hero.map((w, k) => {
+            const a = appear(w.t);
+            const b = soft(f, s(w.t) - 1);
+            return (
+              <span key={k} style={{ fontFamily: "Inter", fontWeight: 800, fontSize: hero.map((h) => h.w).join(" ").length > 14 ? 104 : 150, letterSpacing: -5, lineHeight: 1.0, whiteSpace: "nowrap", backgroundImage: red ? RED_G : GRAD, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", opacity: a, display: "inline-block", transform: `translateY(${(1 - b) * 40}px) scale(${mix(Math.min(b, 1), 0.9, 1)})`, filter: `blur(${(1 - a) * 10}px) drop-shadow(0 8px 24px rgba(0,0,0,.5))` }}>{w.w.toLowerCase()}</span>
+            );
+          })}
+        </div>
+      ) : null}
+      {hb < 0 ? null : null}
     </div>
   );
 };
@@ -248,7 +290,7 @@ const InsertWrap: React.FC = () => {
   );
 };
 
-export const AnfaalReel7: React.FC = () => {
+const Body: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
       <Footage />
@@ -291,11 +333,7 @@ export const AnfaalReel7: React.FC = () => {
         </Rise>
       </At>
       {/* kinetic captions on the dark wall above the head */}
-      {PHRASES.filter((ph) => !(ph.t >= INSERT.from && ph.t < INSERT.to)).map((ph) => (
-        <Sequence key={ph.t} from={s(ph.t)} durationInFrames={s(ph.to - ph.t)} layout="none">
-          <Kinetic ph={ph} />
-        </Sequence>
-      ))}
+      <SyncedCaptions />
       <Sequence from={s(INSERT.from)} durationInFrames={s(INSERT.to - INSERT.from)}>
         <InsertWrap />
       </Sequence>
@@ -303,6 +341,31 @@ export const AnfaalReel7: React.FC = () => {
       <div style={{ position: "absolute", left: 0, right: 0, top: 1590, textAlign: "center", fontFamily: "Inter", fontWeight: 600, fontSize: 30, letterSpacing: -0.5, color: "rgba(255,255,255,.28)" }}>imanfaalpervaiz</div>
       <AbsoluteFill style={{ backgroundImage: `url(${staticFile("an7/grain.png")})`, backgroundSize: "380px 380px", mixBlendMode: "overlay", opacity: 0.08 }} />
       <WhiteFlash />
+    </AbsoluteFill>
+  );
+};
+
+const JumpPunch: React.FC<{ on: boolean; children: React.ReactNode }> = ({ on, children }) => {
+  const f = useCurrentFrame();
+  return <AbsoluteFill style={{ transform: on ? `scale(${mix(p(f, 0, 10, easeOut), 1.05, 1)})` : undefined, transformOrigin: "540px 980px" }}>{children}</AbsoluteFill>;
+};
+export const AnfaalReel7: React.FC = () => {
+  let at = 0;
+  return (
+    <AbsoluteFill style={{ backgroundColor: "#000" }}>
+      {SEGS.map(([a, b], i) => {
+        const from = at;
+        at += s(b) - s(a);
+        return (
+          <Sequence key={i} from={from} durationInFrames={s(b) - s(a)}>
+            <JumpPunch on={i > 0}>
+              <Sequence from={-s(a)}>
+                <Body />
+              </Sequence>
+            </JumpPunch>
+          </Sequence>
+        );
+      })}
     </AbsoluteFill>
   );
 };
