@@ -70,7 +70,7 @@ export const AnfaalReel7Cover: React.FC = () => (
     {/* bottom shade + headline */}
     <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(2,8,5,0) 55%, rgba(2,8,5,.85) 68%, #020805 82%)" }} />
     <div style={{ position: "absolute", left: 0, right: 0, top: 1290, display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <div style={{ padding: "10px 34px", borderRadius: 999, border: "2.5px solid rgba(255,255,255,.9)", fontFamily: "Inter", fontWeight: 600, fontSize: 36, color: "#fff", letterSpacing: -0.5 }}>CPI day · 10 October</div>
+      <div style={{ padding: "10px 34px", borderRadius: 999, border: "2.5px solid rgba(255,255,255,.9)", fontFamily: "Inter", fontWeight: 600, fontSize: 36, color: "#fff", letterSpacing: -0.5 }}>CPI day · 10 November</div>
       <div style={{ marginTop: 18, fontFamily: "Inter", fontWeight: 900, fontSize: 150, lineHeight: 0.95, letterSpacing: -5, color: "#fff", textShadow: "0 10px 30px rgba(0,0,0,.6)" }}>GOLD</div>
       <div style={{ fontFamily: "Inter", fontWeight: 800, fontStyle: "italic", fontSize: 110, lineHeight: 1, letterSpacing: -4, backgroundImage: `linear-gradient(100deg, ${G}, ${GOLD})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", paddingRight: 12 }}>kidhar jayega?</div>
     </div>
