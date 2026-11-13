@@ -91,7 +91,7 @@ const Roll: React.FC<{ t: number; items: [number, React.ReactNode][]; cls: React
   return <div style={{ position: "relative", height: h, overflow: "hidden", ...cls }}>{row(prev, -90 * p, 1 - p, 4 * p)}{row(cur, 90 * (1 - p), p, 4 * (1 - p))}</div>;
 };
 
-export const JunoChaos: React.FC = () => {
+export const JunoChaos: React.FC<{ glass?: boolean }> = ({ glass = false }) => {
   const f = useCurrentFrame(); const t = f / CHAOS_FPS;
   const win = windowAt(t);
   const k = Math.max(win.w / CROP.w, win.h / CROP.h);
@@ -174,11 +174,37 @@ export const JunoChaos: React.FC = () => {
           {/* tangled lines in the chaos */}
           {tangle > 0 && dots.map(({ i, d }) => [2, 3].map((o) => { const e = dots[(i + o) % 6].d; return <line key={`${i}-${o}`} x1={d.x} y1={d.y} x2={mix(d.x, e.x, tangle)} y2={mix(d.y, e.y, tangle)} stroke={T.hair} strokeWidth={2.5} />; }))}
           {/* dots + trails (behind the window) */}
+          {glass && <defs>
+            <radialGradient id="gBody" cx="0.5" cy="0.5" r="0.5" fx="0.36" fy="0.3">
+              <stop offset="0" stopColor="#D9FFEA" stopOpacity={0.95} /><stop offset="0.3" stopColor="#5BF0B8" stopOpacity={0.92} />
+              <stop offset="0.72" stopColor="#1CE49B" stopOpacity={0.9} /><stop offset="1" stopColor="#06694A" stopOpacity={0.96} />
+            </radialGradient>
+            <radialGradient id="gCaustic" cx="0.68" cy="0.76" r="0.42">
+              <stop offset="0" stopColor="#E6FFF2" stopOpacity={0.6} /><stop offset="0.55" stopColor="#7DF7C6" stopOpacity={0.18} /><stop offset="1" stopColor="#1CE49B" stopOpacity={0} />
+            </radialGradient>
+            <radialGradient id="gGlow" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0.6" stopColor="#1CE49B" stopOpacity={0.22} /><stop offset="1" stopColor="#1CE49B" stopOpacity={0} />
+            </radialGradient>
+            <linearGradient id="gRim" x1="0.15" y1="0.1" x2="0.85" y2="0.9">
+              <stop offset="0" stopColor="#fff" stopOpacity={0.85} /><stop offset="0.45" stopColor="#fff" stopOpacity={0.05} /><stop offset="1" stopColor="#B4F7CA" stopOpacity={0.5} />
+            </linearGradient>
+            <filter id="gSoft" x="-50%" y="-150%" width="200%" height="400%"><feGaussianBlur stdDeviation="9" /></filter>
+            <filter id="gSpec" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" /></filter>
+          </defs>}
           <defs>{dots.map(({ i, d, d0 }) => <linearGradient key={i} id={`ct${i}`} gradientUnits="userSpaceOnUse" x1={d0.x} y1={d0.y} x2={d.x} y2={d.y}>
             <stop offset="0" stopColor={T.green} stopOpacity={0} /><stop offset="1" stopColor={T.green} stopOpacity={0.3} /></linearGradient>)}</defs>
           {dots.map(({ i, d, d0 }) => d.r <= 0.3 ? null : <g key={i}>
             {Math.hypot(d.x - d0.x, d.y - d0.y) > 6 && <line x1={d0.x} y1={d0.y} x2={d.x} y2={d.y} stroke={`url(#ct${i})`} strokeWidth={d.r * 1.6} strokeLinecap="round" />}
-            <circle cx={d.x} cy={d.y} r={d.r} fill={T.green} /></g>)}
+            {!glass ? <circle cx={d.x} cy={d.y} r={d.r} fill={T.green} /> : <g>
+              {/* 3D glass sphere: contact shadow, glow, tinted body, caustic, rim light, speculars */}
+              <ellipse cx={d.x + d.r * 0.18} cy={d.y + d.r * 1.12} rx={d.r * 0.85} ry={d.r * 0.26} fill="#000" opacity={0.38} filter="url(#gSoft)" />
+              <circle cx={d.x} cy={d.y} r={d.r * 1.25} fill="url(#gGlow)" />
+              <circle cx={d.x} cy={d.y} r={d.r} fill="url(#gBody)" />
+              <circle cx={d.x} cy={d.y} r={d.r} fill="url(#gCaustic)" />
+              <circle cx={d.x} cy={d.y} r={d.r - 1} fill="none" stroke="url(#gRim)" strokeWidth={Math.max(1.2, d.r * 0.06)} />
+              <ellipse cx={d.x - d.r * 0.34} cy={d.y - d.r * 0.42} rx={d.r * 0.36} ry={d.r * 0.2} fill="#fff" opacity={0.75} transform={`rotate(-32 ${d.x - d.r * 0.34} ${d.y - d.r * 0.42})`} filter={d.r > 24 ? "url(#gSpec)" : undefined} />
+              <circle cx={d.x + d.r * 0.42} cy={d.y + d.r * 0.5} r={d.r * 0.07} fill="#fff" opacity={0.55} />
+            </g>}</g>)}
         </svg>
 
         {/* window */}
@@ -205,3 +231,5 @@ export const JunoChaos: React.FC = () => {
     </AbsoluteFill>
   );
 };
+
+export const JunoChaosGlass: React.FC = () => <JunoChaos glass />;
