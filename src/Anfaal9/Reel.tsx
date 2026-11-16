@@ -1,5 +1,6 @@
 // Anfaal reel 9 (91 s) — "Gold kyun gira? 3 reasons" in the reel-7/8 kinetic style + motion graphics.
-// Audio fixed (quiet first 23 s + clipped loud part): declip, denoise, dynamic level evening, crisp EQ. No music.
+// Audio rebuilt from raw: +18 dB on the quiet first 22.4 s, declip, denoise, dynamic EQ on shouty/high-pitch bands, speechnorm word-level evening. No music.
+// 54.12–68.8: full-screen scenes from the client's channel-signal + TradingView screenshots.
 // Selfie framing (face ~950–1590 px): kinetic captions on a dark plate + all cards in the band above the head.
 import React from "react";
 import { AbsoluteFill, Img, Sequence, interpolate, spring, staticFile, useCurrentFrame } from "remotion";
@@ -356,6 +357,108 @@ const Copier: React.FC = () => {
   );
 };
 
+/** ---------- full-screen trade scenes (client screenshots) ---------- */
+const FS_BG: React.FC = () => {
+  const f = useCurrentFrame();
+  return (
+    <AbsoluteFill style={{ background: "radial-gradient(120% 80% at 50% 38%, #0E3A26 0%, #062114 45%, #020A06 100%)" }}>
+      <AbsoluteFill style={{ backgroundImage: "linear-gradient(rgba(47,210,126,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(47,210,126,.07) 1px, transparent 1px)", backgroundSize: "90px 90px", backgroundPosition: `0 ${-f * 0.6}px`, maskImage: "radial-gradient(70% 60% at 50% 50%, #000 30%, transparent 100%)" }} />
+      <div style={{ position: "absolute", left: 140, top: 700 + Math.sin(f / 40) * 40, width: 800, height: 800, borderRadius: 400, background: "radial-gradient(circle, rgba(232,199,127,.16), transparent 65%)" }} />
+    </AbsoluteFill>
+  );
+};
+/** screenshot window: crop [y0,y1] of a 736-wide image, shown `w` px wide at `top` */
+const Shot: React.FC<{ src: string; y0: number; y1: number; w: number; top: number; scroll?: number; children?: React.ReactNode }> = ({ src, y0, y1, w, top, scroll = 0, children }) => {
+  const k = w / 736;
+  return (
+    <div style={{ position: "absolute", left: (1080 - w) / 2, top, width: w, height: (y1 - y0) * k, borderRadius: 34, overflow: "hidden", border: "2px solid rgba(255,255,255,.16)", boxShadow: "0 40px 90px rgba(0,0,0,.55), 0 0 0 10px rgba(47,210,126,.08)" }}>
+      <div style={{ position: "absolute", left: 0, top: -(y0 + scroll) * k, width: w, height: 1600 * k }}>
+        <Img src={staticFile(src)} style={{ width: w, height: 1600 * k, display: "block" }} />
+        {children}
+      </div>
+    </div>
+  );
+};
+/** glowing highlight around a region (image coords, scaled by k) */
+const Hi: React.FC<{ k: number; x: number; y: number; w: number; h: number; at: number; color?: string; label?: string; side?: "r" | "l" }> = ({ k, x, y, w, h, at, color = K.hue, label }) => {
+  const f = useCurrentFrame();
+  const a = spring({ frame: f - at, fps: FPS, config: { stiffness: 160, damping: 14 } });
+  if (f < at) return null;
+  return (
+    <div style={{ position: "absolute", left: x * k - 8, top: y * k - 8, width: w * k + 16, height: h * k + 16, borderRadius: 30, border: `4px solid ${color}`, boxShadow: `0 0 34px ${color}aa, inset 0 0 24px ${color}44`, opacity: Math.min(1, a), transform: `scale(${mix(Math.min(a, 1.2), 1.08, 1)})` }}>
+      {label ? <div style={{ position: "absolute", right: 18, top: -30, padding: "6px 18px", borderRadius: 12, background: color, fontFamily: "Inter", fontWeight: 900, fontSize: 30, color: "#05130B", letterSpacing: 0.5, whiteSpace: "nowrap" }}>{label}</div> : null}
+    </div>
+  );
+};
+const SceneIn: React.FC<{ dur: number; children: React.ReactNode }> = ({ dur, children }) => {
+  const f = useCurrentFrame();
+  const i = p(f, 0, 14, easeOut), o = p(f, dur - 9, 9, easeIn);
+  return <AbsoluteFill style={{ opacity: i * (1 - o), transform: `scale(${mix(i, 1.08, 1) * mix(o, 1, 0.96)})`, filter: i < 1 || o > 0 ? `blur(${(1 - i) * 14 + o * 10}px)` : undefined }}>{children}</AbsoluteFill>;
+};
+const Tag: React.FC<{ text: string; at: number; top: number; color?: string }> = ({ text, at, top, color = K.gold }) => {
+  const f = useCurrentFrame();
+  const a = spring({ frame: f - at, fps: FPS, config: { stiffness: 150, damping: 13 } });
+  if (f < at) return null;
+  return <div style={{ position: "absolute", left: 0, right: 0, top, display: "flex", justifyContent: "center", opacity: Math.min(1, a), transform: `translateY(${(1 - Math.min(a, 1)) * 30}px) scale(${mix(Math.min(a, 1.15), 0.8, 1)})` }}>
+    <div style={{ padding: "12px 30px", borderRadius: 18, background: "rgba(5,19,11,.92)", border: `2px solid ${color}`, fontFamily: "Inter", fontWeight: 900, fontSize: 36, color, letterSpacing: 1 }}>{text}</div>
+  </div>;
+};
+/** 54.12–61.95: the channel signals */
+const SignalsScene: React.FC = () => {
+  const f = useCurrentFrame();
+  const W = 780, k = W / 736, L = s(61.95 - 54.12);
+  const at = (t: number) => s(t - 54.12);
+  const scroll = interpolate(f, [0, L], [0, 40], clamp);
+  return (
+    <SceneIn dur={L}>
+      <FS_BG />
+      <Shot src="an9/signals.jpg" y0={100} y1={1250} w={W} top={500} scroll={scroll}>
+        <Hi k={k} x={28} y={220} w={680} h={100} at={at(60.0)} label="BUY 3880 · 6:22 PM" />
+        <Hi k={k} x={28} y={382} w={680} h={82} at={at(60.9)} color="#FF5F66" label="SL 3870" />
+        <Hi k={k} x={28} y={524} w={680} h={180} at={at(61.35)} color={K.gold} label="3 TPs" />
+      </Shot>
+      <Tag text="FRIDAY · CPI DAY" at={at(57.5)} top={1775} />
+    </SceneIn>
+  );
+};
+/** 61.95–68.8: the chart — entry, SL, then all TPs hit within one minute */
+const ChartScene: React.FC = () => {
+  const f = useCurrentFrame();
+  const W = 800, k = W / 736, L = s(68.8 - 61.95);
+  const at = (t: number) => s(t - 61.95);
+  const y0 = 330, zoom = interpolate(f, [0, L], [1, 1.07], clamp);
+  const Line: React.FC<{ y: number; c: string; text: string; show: number; dash?: boolean; hit?: number }> = ({ y, c, text, show, dash, hit = 1e9 }) => {
+    const a = p(f, show, 10), h = p(f, hit, 6);
+    return (
+      <div style={{ position: "absolute", left: 0, top: y * k - 2, width: 610 * k * a, height: 0, borderTop: `4px ${dash ? "dashed" : "solid"} ${c}`, boxShadow: `0 0 16px ${c}` }}>
+        <div style={{ position: "absolute", left: 14, top: -48, padding: "5px 14px", borderRadius: 10, background: h > 0.5 ? K.hue : c, fontFamily: "Inter", fontWeight: 900, fontSize: 26, color: "#05130B", opacity: a, whiteSpace: "nowrap", transform: `scale(${mix(h, 1, 1.12)})`, transformOrigin: "left" }}>{h > 0.5 ? text + "  HIT ✓" : text}</div>
+      </div>
+    );
+  };
+  const hit = at(66.15);
+  const stamp = spring({ frame: f - (hit + 18), fps: FPS, config: { stiffness: 170, damping: 12 } });
+  return (
+    <SceneIn dur={L}>
+      <FS_BG />
+      <div style={{ position: "absolute", inset: 0, transform: `scale(${zoom})`, transformOrigin: "50% 60%" }}>
+        <Shot src="an9/chart.jpg" y0={y0} y1={1290} w={W} top={520}>
+          <Line y={1010} c={K.gold} text="ENTRY 3880 · BUY" show={at(62.3)} />
+          <Line y={1248} c="#FF5F66" text="SL 3870" show={at(62.9)} />
+          <Line y={776} c="#9BE07A" text="TP1 3890" show={at(64.0)} dash hit={hit} />
+          <Line y={657} c="#9BE07A" text="TP2 3895" show={at(64.3)} dash hit={hit + 10} />
+          <Line y={538} c="#9BE07A" text="TP3 3900" show={at(64.6)} dash hit={hit + 20} />
+        </Shot>
+      </div>
+      <Tag text="⏱  WITHIN 1 MINUTE" at={at(64.6)} top={1605} color={K.hue} />
+      {f >= hit + 18 ? (
+        <div style={{ position: "absolute", left: 0, right: 0, top: 1715, display: "flex", justifyContent: "center", opacity: Math.min(1, stamp), transform: `scale(${mix(Math.min(stamp, 1.2), 1.6, 1)}) rotate(-4deg)` }}>
+          <div style={{ padding: "14px 40px", borderRadius: 20, background: GRAD, fontFamily: "Anton", fontSize: 70, color: "#05130B", letterSpacing: 2, boxShadow: "0 20px 60px rgba(47,210,126,.5)" }}>ALL TPs HIT  +$20</div>
+        </div>
+      ) : null}
+    </SceneIn>
+  );
+};
+
 export const AnfaalReel9: React.FC = () => (
   <AbsoluteFill style={{ backgroundColor: "#000" }}>
     <Footage />
@@ -367,7 +470,8 @@ export const AnfaalReel9: React.FC = () => (
     <At from={29.05} to={39.2}><Rise at={0} out={s(10.1)}><Reason n="3" title="Fed hawkish" a={["RATE CUTS", "▼ expectations", "#FF5F66"]} b={["GEOPOLITICS", "uncertainty", K.gold]} /></Rise></At>
     <At from={39.32} to={47.4}><Rise at={0} out={s(8.0)}><StatusList title="Gold pressure mein kyun?" step={s(0.9)} rows={[["US dollar strong", "✓", "hue"], ["Treasury yields up", "✓", "hue"], ["Fed hawkish", "✓", "hue"]]} /></Rise></At>
     <At from={47.46} to={51.3}><Rise at={0} out={s(3.8)}><Chips step={0} accent={0} items={["Next focus: US economic data"]} /></Rise></At>
-    <At from={54.12} to={68.8}><Rise at={0} out={s(14.6)}><Ticket tpAt={s(66.2 - 54.12)} /></Rise></At>
+    <At from={54.12} to={61.95}><SignalsScene /></At>
+    <At from={61.95} to={68.8}><ChartScene /></At>
     <At from={71.38} to={77.5}><Rise at={0} out={s(6.1)}><StatusList title="Channel · link bio mein" step={s(0.9)} rows={[["Safe trades", "Daily", "hue"], ["Join", "FREE", "gold"]]} /></Rise></At>
     <At from={77.66} to={84.6}><Rise at={0} out={s(6.9)}><Bubble text="number bio mein · team add karegi ✓" at={s(2.2)} /></Rise></At>
     <At from={84.75} to={91.0}><Rise at={0} out={s(6.25)}><Copier /></Rise></At>
