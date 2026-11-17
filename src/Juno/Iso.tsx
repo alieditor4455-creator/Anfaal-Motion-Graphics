@@ -1,5 +1,7 @@
 // Juno — isometric glass build (voice-over: 01.MP4, 6.38s; total 7.2s, still ending). 9:16, 60fps.
 // Follows the client's "Intentional Build v8 iso" reference, rebuilt as Juno Green glass DOCUMENT PAGES:
+// Stage changes are MOSAIC transitions: a diagonal wave of glass tiles flips across the plate and each page
+// card-flips out/in as the wave passes it. End: the top page of every pile fills in, line by line (doc fill).
 //  phrase 1  plate draws on; glass pages (text lines + folded corner) rain in and land scattered
 //  phrase 2  pages glide into a neat 4x4 grid; a soft light wave runs across them
 //  phrase 3  the grid cools to clear glass and dissolves; a seed pulses; a dashed scaffold grows up
@@ -50,14 +52,16 @@ type Cam = { S: number; cx: number; cy: number };
 const P = (cam: Cam, x: number, y: number, z: number): [number, number] => [cam.cx + (x - y) * C30 * cam.S, cam.cy + (x + y) * 0.5 * cam.S - z * cam.S];
 const M = (cam: Cam, z0: number) => `matrix(${C30 * cam.S},${0.5 * cam.S},${-C30 * cam.S},${0.5 * cam.S},${cam.cx},${cam.cy - z0 * cam.S})`;
 
-type Sheet = { id: string; x: number; y: number; z: number; w: number; d: number; th: number; rot: number; tint: RGB; a: number; glow: number; text: boolean };
+type Sheet = { id: string; x: number; y: number; z: number; w: number; d: number; th: number; rot: number; tint: RGB; a: number; glow: number; text: boolean; fl?: number; fills?: number[] };
+const diag = (x: number, y: number) => Math.max(0, Math.min(1, (x + y + 6) / 12)); // back corner 0 -> front corner 1
+const WA = 1.3, WB = 2.65, WC = 4.5, SA = 0.55, SB = 0.5, SC = 0.4; // mosaic waves: start, spread
 
 // one glass document page: footprint (x,y) w*d, thickness th, in-plane rotation rot (deg, about its centre)
 const GlassPage: React.FC<{ c: Sheet; cam: Cam; band: number }> = ({ c, cam, band }) => {
-  const { w, d, th, tint, a } = c;
-  if (a <= 0.003 || w <= 0.01) return null;
+  const { w, th, tint, a } = c; const d = c.d * (c.fl ?? 1);
+  if (a <= 0.003 || w <= 0.01 || d <= 0.01) return null;
   const z = c.z, zt = z + th, R = 0.07;
-  const ccx = c.x + w / 2, ccy = c.y + d / 2, ang = (c.rot * Math.PI) / 180;
+  const ccx = c.x + w / 2, ccy = c.y + c.d / 2, ang = (c.rot * Math.PI) / 180;
   const W = (u: number, v: number): [number, number] => { const dx = u - w / 2, dy = v - d / 2; return [ccx + dx * Math.cos(ang) - dy * Math.sin(ang), ccy + dx * Math.sin(ang) + dy * Math.cos(ang)]; };
   // page outline in local (u,v): rounded corners + folded corner at (w,0)
   const F = Math.min(w, d) * 0.22;
@@ -94,7 +98,11 @@ const GlassPage: React.FC<{ c: Sheet; cam: Cam; band: number }> = ({ c, cam, ban
       <path d={toD(top)} fill="url(#isoDome)" opacity={c.text ? 0.7 : 0.25} />
       {lines.length > 0 && <g transform={M(cam, zt)}>
         <g transform={`translate(${ccx} ${ccy}) rotate(${c.rot}) translate(${-w / 2} ${-d / 2})`}>
-          {lines.map((l, i) => <line key={i} x1={0.14 * w} y1={l.v} x2={(0.14 + l.len * 0.72) * w} y2={l.v} stroke={i === 0 ? "rgba(255,255,255,.75)" : "rgba(255,255,255,.42)"} strokeWidth={i === 0 ? 3 : 2} strokeLinecap="round" vectorEffect="non-scaling-stroke" />)}
+          {lines.map((l, i) => { const x1 = 0.14 * w, x2 = (0.14 + l.len * 0.72) * w, sw = i === 0 ? 3 : 2;
+            if (!c.fills) return <line key={i} x1={x1} y1={l.v} x2={x2} y2={l.v} stroke={i === 0 ? "rgba(255,255,255,.75)" : "rgba(255,255,255,.42)"} strokeWidth={sw} strokeLinecap="round" vectorEffect="non-scaling-stroke" />;
+            const fv = c.fills[i] ?? 0;
+            return <g key={i}><line x1={x1} y1={l.v} x2={x2} y2={l.v} stroke="rgba(255,255,255,.16)" strokeWidth={sw} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              {fv > 0.001 && <line x1={x1} y1={l.v} x2={mix(x1, x2, fv)} y2={l.v} stroke={i === 0 ? "#F8F9FA" : "#B4F7CA"} strokeWidth={sw + 0.5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />}</g>; })}
         </g></g>}
       <path d={toD(fold)} fill="rgba(255,255,255,.35)" stroke={rgba(edge, 0.6)} strokeWidth={1} />
       <path d={toD(top)} fill="none" stroke={rgba(edge, c.text ? 0.8 : 0.5)} strokeWidth={c.text ? 1.4 : 1.1} strokeLinejoin="round" />
@@ -111,38 +119,45 @@ export const JunoIso: React.FC = () => {
 
   const plateIn = pr(t, 0.0, 0.7, GLIDE);
   const gridLines = pr(t, 0.15, 0.85, DRAW);
-  const toGrid = (n: number) => pr(t, 1.3 + n * 0.025, 2.15 + n * 0.025, MOVE);
-  const wave = (n: number) => { const g = GRID[n]; const d = (g.x + g.y + 3) / 6; const c = 2.15 + d * 0.45; return Math.exp(-Math.pow((t - c) / 0.12, 2)); };
-  const cool = pr(t, 2.6, 3.0, SWAP);
-  const dissolve = (n: number) => { const o = ((GRID[n].x + GRID[n].y + 3) / 6) * 0.25; return pr(t, 2.95 + o, 3.35 + o, SWAP); };
+  const wave = (n: number) => { const g = GRID[n]; const d = (g.x + g.y + 3) / 6; const c = 2.2 + d * 0.35; return Math.exp(-Math.pow((t - c) / 0.12, 2)); };
+  const cool = pr(t, 2.5, 2.8, SWAP);
   const seed = pr(t, 3.25, 3.55, GLIDE) * (1 - pr(t, 4.6, 4.9, SWAP));
   const ripple = pr(t, 3.3, 4.1, Easing.out(Easing.cubic));
   const scaffold = pr(t, 3.45, 4.45, DRAW);
-  const heroT0 = (n: number) => 4.55 + n * 0.12;
-  const settled = pr(t, 5.45, 5.95, SIN);
+  const settled = pr(t, WC, WC + 0.7, SIN);
   const bloom = pr(t, 5.6, 6.4, SIN);
   const sweep = pr(t, 5.85, 6.55, SIN);
 
   const sheets: Sheet[] = [];
   GRID.forEach((g, n) => {
-    const land = pr(t, 0.35 + DROP[n].d, 1.05 + DROP[n].d, Easing.out(Easing.cubic));
-    const sc = SCAT[n], tg = toGrid(n), dis = dissolve(n);
-    const k = 1 - dis, w = GW * k, d = GD * k;
-    const cx = mix(sc.x, g.x, tg), cy = mix(sc.y, g.y, tg);
-    sheets.push({ id: `g${n}`, x: cx - w / 2, y: cy - d / 2, z: Math.max(0, mix(DROP[n].h, 0, land)), w, d, th: GT, rot: DROP[n].rot * (1 - tg),
-      tint: mixC(GREEN, CLEAR, cool), a: (t < 0.35 + DROP[n].d ? 0 : pr(t, 0.35 + DROP[n].d, 0.6 + DROP[n].d)) * k, glow: wave(n), text: true });
+    const l0 = 0.25 + DROP[n].d * 0.6, land = pr(t, l0, l0 + 0.6, Easing.out(Easing.cubic));
+    const sc = SCAT[n], dS = diag(sc.x, sc.y), dG = diag(g.x, g.y);
+    const out = pr(t, WA + dS * SA, WA + dS * SA + 0.2, SWAP);                 // scattered page flips out
+    const inn = pr(t, WA + dG * SA + 0.18, WA + dG * SA + 0.42, GLIDE);        // grid page flips in
+    const out2 = pr(t, WB + dG * SB, WB + dG * SB + 0.22, SWAP);              // grid page flips out (to scaffold stage)
+    if (out < 1 && t >= l0) sheets.push({ id: `s${n}`, x: sc.x - GW / 2, y: sc.y - GD / 2, z: Math.max(0, mix(DROP[n].h, 0, land)), w: GW, d: GD, th: GT, rot: DROP[n].rot,
+      tint: GREEN, a: pr(t, l0, l0 + 0.25), glow: 0, text: true, fl: 1 - out });
+    if (inn > 0 && out2 < 1) sheets.push({ id: `g${n}`, x: g.x - GW / 2, y: g.y - GD / 2, z: (1 - inn) * 0.35, w: GW, d: GD, th: GT, rot: 0,
+      tint: mixC(GREEN, CLEAR, cool), a: 1, glow: wave(n), text: true, fl: inn * (1 - out2) });
   });
   HERO.forEach((h, n) => {
-    if (t < heroT0(n)) return;
-    const m = heroMin(h);
+    const m = heroMin(h), dP = diag(m.x + B / 2, m.y + B / 2);
+    const fills = [0, 1, 2, 3, 4, 5].map((i) => pr(t, 5.6 + n * 0.06 + i * 0.09, 5.82 + n * 0.06 + i * 0.09, Easing.inOut(Easing.quad)));
     for (let p = 0; p < PAGES; p++) {
-      const t0 = heroT0(n) + (PAGES - 1 - p) * 0.035;
-      const dz = pr(t, t0, t0 + 0.6, GLIDE), sq = pr(t, t0 + 0.35, t0 + 0.95, SIN);
-      const j = JIT[n * PAGES + p];
-      sheets.push({ id: `h${n}_${p}`, x: m.x + (B - HW) / 2 + j.x * (1 - sq), y: m.y + (B - HD) / 2 + j.y * (1 - sq), z: m.z + 0.03 + p * PPITCH + (1 - dz) * (5.5 + p * 0.3),
-        w: HW, d: HD, th: PT, rot: j.rot * (1 - sq), tint: GREEN, a: pr(t, t0, t0 + 0.2), glow: 0.2 * bloom, text: p === PAGES - 1 });
+      const t0 = WC + dP * SC + h[2] * 0.2 + p * 0.035;
+      const fin = pr(t, t0, t0 + 0.3, GLIDE); if (fin <= 0) continue;
+      const sq = pr(t, t0 + 0.15, t0 + 0.55, SIN), j = JIT[n * PAGES + p];
+      sheets.push({ id: `h${n}_${p}`, x: m.x + (B - HW) / 2 + j.x * (1 - sq), y: m.y + (B - HD) / 2 + j.y * (1 - sq), z: m.z + 0.03 + p * PPITCH + (1 - fin) * 0.5,
+        w: HW, d: HD, th: PT, rot: j.rot * (1 - sq), tint: GREEN, a: pr(t, t0, t0 + 0.12), glow: 0.2 * bloom, text: p === PAGES - 1, fl: fin, fills: p === PAGES - 1 ? fills : undefined });
     }
   });
+  // mosaic tiles on the plate
+  const tiles: { x: number; y: number; f: number; k: number }[] = [];
+  for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++) {
+    const x = -HALF + 0.25 + i * 0.5, y = -HALF + 0.25 + j * 0.5, dT = diag(x, y);
+    ([[WA, SA, 0], [WB, SB, 1], [WC, SC, 2]] as [number, number, number][]).forEach(([w0, sp, k]) => {
+      const f = pr(t, w0 + dT * sp, w0 + dT * sp + 0.32, Easing.linear); if (f > 0 && f < 1) tiles.push({ x, y, f, k }); });
+  }
   sheets.sort((a, b) => (a.x + a.y + a.z + (a.w + a.d) / 2) - (b.x + b.y + b.z + (b.w + b.d) / 2));
 
   const plateC = [P(cam, -HALF, -HALF, 0), P(cam, HALF, -HALF, 0), P(cam, HALF, HALF, 0), P(cam, -HALF, HALF, 0)];
@@ -174,6 +189,13 @@ export const JunoIso: React.FC = () => {
           <polygon points={poly([plateC[1], plateC[2], [plateC[2][0], plateC[2][1] + 16], [plateC[1][0], plateC[1][1] + 16]])} fill="#101211" />
           <polygon points={poly([plateC[2], plateC[3], [plateC[3][0], plateC[3][1] + 16], [plateC[2][0], plateC[2][1] + 16]])} fill="#171a19" />
           <polyline points={poly([plateC[1], plateC[2], plateC[3]])} fill="none" stroke="rgba(180,247,202,.42)" strokeWidth={2} />
+        </g>
+
+        {/* mosaic transition tiles */}
+        <g transform={M(cam, 0.004)}>
+          {tiles.map((q, i) => { const op = Math.sin(Math.PI * q.f), fl = Math.abs(Math.cos(Math.PI * q.f)), hs = 0.21;
+            return <rect key={i} x={q.x - hs} y={q.y - hs * fl} width={2 * hs} height={2 * hs * fl} rx={0.05}
+              fill={q.f < 0.5 ? "rgba(248,249,250,.7)" : "#1CE49B"} opacity={op * (q.k === 1 ? 0.3 : 0.42)} />; })}
         </g>
 
         {/* soft contact shadows + faint caustics */}
