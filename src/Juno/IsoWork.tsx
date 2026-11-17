@@ -73,12 +73,12 @@ export const JunoWork: React.FC = () => {
   const panelA = pr(t, 0, 0.5) * (1 - pr(t, 3.4, 3.9, SIN));
 
   const zo = Math.exp(Math.log(2.4) * (1 - pr(t, 0, 1.3, Easing.bezier(0.3, 0, 0.12, 1))));
-  const base: Cam = { S: 100, cx: 540, cy: 1230 };
+  const base: Cam = { S: 104, cx: 540, cy: 1060 };
   const topZ = HERO_C[2] + HH;
   const hp = P(base, HERO_C[0], HERO_C[1], topZ);
   const k = zo * mix(1, 1.22, endZ);
   const S = base.S * k;
-  const tx = mix(hp[0], 540, endZ), ty = mix(hp[1], 1090, endZ);
+  const tx = mix(hp[0], 540, endZ), ty = mix(hp[1], 920, endZ);
   const cam: Cam = zo > 1.0001 ? { S, cx: base.cx, cy: base.cy }
     : { S, cx: tx - (HERO_C[0] - HERO_C[1]) * C30 * S, cy: ty - ((HERO_C[0] + HERO_C[1]) * 0.5 - topZ) * S };
 
@@ -126,7 +126,7 @@ export const JunoWork: React.FC = () => {
     <AbsoluteFill style={{ background: "#1E1E1E", overflow: "hidden" }}>
       <Audio src={staticFile("juno/raw5/audio.m4a")} />
       <AbsoluteFill style={{ backgroundImage: "linear-gradient(rgba(248,249,250,.025) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(248,249,250,.025) 1.5px,transparent 1.5px)", backgroundSize: "54px 54px" }} />
-      <AbsoluteFill style={{ background: `radial-gradient(46% 26% at 50% 60%, rgba(28,228,155,${0.05 + 0.04 * lift}), transparent 70%)` }} />
+      <AbsoluteFill style={{ background: `radial-gradient(46% 26% at 50% 50%, rgba(28,228,155,${0.05 + 0.04 * lift}), transparent 70%)` }} />
       <AbsoluteFill style={{ background: "radial-gradient(120% 80% at 50% 50%, transparent 55%, rgba(0,0,0,.45))" }} />
 
       <svg width={1080} height={1920} style={{ position: "absolute", inset: 0, overflow: "visible" }}>
@@ -194,10 +194,6 @@ export const JunoWork: React.FC = () => {
             <path d="M-15 1 L-4 12 L16 -10" fill="none" stroke="#043329" strokeWidth={6} strokeLinecap="round" strokeLinejoin="round" /></g>; })()}
       </svg>
 
-      <div style={{ position: "absolute", left: 0, right: 0, top: 250 }}>
-        <Roll t={t} h={82} cls={lead} items={[[0.05, "AI handles the"], [1.6, "the data"], [2.42, "the document"], [3.48, "you bring the"], [4.32, "your"], [5.32, "your"], [6.08, "that's where the work"]]} />
-        <Roll t={t} h={140} cls={main} items={[[0.3, G("repetitive")], [1.66, G("movement")], [2.5, G("shuffling")], [3.52, G("judgment")], [4.38, G("expertise")], [5.38, G("sign-off")], [6.3, G("happens")]]} />
-      </div>
     </AbsoluteFill>
   );
 };
