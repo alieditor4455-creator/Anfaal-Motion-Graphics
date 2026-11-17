@@ -47,17 +47,17 @@ const HW = 0.98, HD = 1.16, PAGES = 6, PPITCH = (B - 0.14) / PAGES, PT = 0.1;
 const JIT = [...Array(8 * PAGES)].map(() => ({ x: (r() - 0.5) * 0.16, y: (r() - 0.5) * 0.16, rot: (r() - 0.5) * 14 }));
 
 // ---- iso projection ----
-const C30 = Math.cos(Math.PI / 6);
-type Cam = { S: number; cx: number; cy: number };
-const P = (cam: Cam, x: number, y: number, z: number): [number, number] => [cam.cx + (x - y) * C30 * cam.S, cam.cy + (x + y) * 0.5 * cam.S - z * cam.S];
-const M = (cam: Cam, z0: number) => `matrix(${C30 * cam.S},${0.5 * cam.S},${-C30 * cam.S},${0.5 * cam.S},${cam.cx},${cam.cy - z0 * cam.S})`;
+export const C30 = Math.cos(Math.PI / 6);
+export type Cam = { S: number; cx: number; cy: number };
+export const P = (cam: Cam, x: number, y: number, z: number): [number, number] => [cam.cx + (x - y) * C30 * cam.S, cam.cy + (x + y) * 0.5 * cam.S - z * cam.S];
+export const M = (cam: Cam, z0: number) => `matrix(${C30 * cam.S},${0.5 * cam.S},${-C30 * cam.S},${0.5 * cam.S},${cam.cx},${cam.cy - z0 * cam.S})`;
 
-type Sheet = { id: string; x: number; y: number; z: number; w: number; d: number; th: number; rot: number; tint: RGB; a: number; glow: number; text: boolean; fl?: number; fills?: number[] };
+export type Sheet = { id: string; x: number; y: number; z: number; w: number; d: number; th: number; rot: number; tint: RGB; a: number; glow: number; text: boolean; fl?: number; fills?: number[] };
 const diag = (x: number, y: number) => Math.max(0, Math.min(1, (x + y + 6) / 12)); // back corner 0 -> front corner 1
 const WA = 1.35, WB = 3.2, WC = 5.0, SA = 0.8, SB = 0.75, SC = 0.6; // mosaic waves: start, spread
 
 // one glass document page: footprint (x,y) w*d, thickness th, in-plane rotation rot (deg, about its centre)
-const GlassPage: React.FC<{ c: Sheet; cam: Cam; band: number }> = ({ c, cam, band }) => {
+export const GlassPage: React.FC<{ c: Sheet; cam: Cam; band: number }> = ({ c, cam, band }) => {
   const { w, th, tint, a } = c; const d = c.d * (c.fl ?? 1);
   if (a <= 0.003 || w <= 0.01 || d <= 0.01) return null;
   const z = c.z, zt = z + th, R = 0.07;

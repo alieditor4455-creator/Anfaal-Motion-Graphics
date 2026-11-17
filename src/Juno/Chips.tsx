@@ -22,7 +22,7 @@ const pr = (t: number, a: number, b: number, e = GLIDE) =>
   interpolate(t, [a, b], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: e });
 const mix = (a: number, b: number, p: number) => a + (b - a) * p;
 
-const GREEN = "#1CE49B", INK = "#F8F9FA", SOFT = "rgba(248,249,250,.62)";
+export const GREEN = "#1CE49B", INK = "#F8F9FA", SOFT = "rgba(248,249,250,.62)";
 const CW = 780, CH = 150, CX = 540, TOP = 880; // card size, centre x, top y (just below the chin)
 
 // ---- icons (Juno Green line icons on a glass tile) ----
@@ -33,21 +33,21 @@ const Lens = () => <svg width={48} height={48} viewBox="0 0 48 48"><circle cx={2
 const Person = () => <svg width={48} height={48} viewBox="0 0 48 48"><circle cx={24} cy={16} r={9} fill="rgba(28,228,155,.16)" stroke={GREEN} strokeWidth={3} /><path d="M7 44c2-10 9-15 17-15s15 5 17 15" fill="rgba(28,228,155,.12)" stroke={GREEN} strokeWidth={3} strokeLinecap="round" /></svg>;
 
 // ---- mosaic reveal mask (objectBoundingBox tiles, diagonal wave) ----
-const COLS = 14, ROWS = 4;
-const Mosaic: React.FC<{ id: string; p: number }> = ({ id, p }) => (
+export const COLS = 14, ROWS = 4;
+export const Mosaic: React.FC<{ id: string; p: number; out?: boolean }> = ({ id, p, out }) => (
   <svg width={0} height={0} style={{ position: "absolute" }}><defs><clipPath id={id} clipPathUnits="objectBoundingBox">
     {[...Array(COLS * ROWS)].map((_, n) => { const c = n % COLS, r = Math.floor(n / COLS); const d = (c / (COLS - 1) + r / (ROWS - 1)) / 2;
-      const s = Math.min(1.06, pr(p, d * 0.6, d * 0.6 + 0.4, SIN) * 1.06); if (s <= 0) return null;
+      const q = pr(p, d * 0.6, d * 0.6 + 0.4, SIN); const s = Math.min(1.06, (out ? 1 - q : q) * 1.06); if (s <= 0) return null;
       const w = s / COLS, h = s / ROWS; return <rect key={n} x={(c + 0.5) / COLS - w / 2} y={(r + 0.5) / ROWS - h / 2} width={w} height={h} rx={0.004} />; })}
   </clipPath></defs></svg>);
 
-type Card = { tIn: number; icon: React.FC; title: string; sub: string; right: (t: number) => React.ReactNode; bar?: (t: number) => number };
+export type Card = { tIn: number; icon: React.FC; title: string; sub: string; right: (t: number) => React.ReactNode; bar?: (t: number) => number };
 const pill = (txt: React.ReactNode, filled = false, outline = false) => (
   <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 20px", borderRadius: 999, fontFamily: "Outfit", fontWeight: 500, fontSize: 26,
     background: filled ? GREEN : outline ? "rgba(248,249,250,.06)" : "rgba(28,228,155,.14)", color: filled ? "#043329" : outline ? INK : GREEN,
     boxShadow: `inset 0 0 0 1.5px ${filled ? GREEN : outline ? "rgba(248,249,250,.4)" : "rgba(28,228,155,.5)"}` }}>{txt}</div>);
 
-const CARDS: Card[] = [
+export const CARDS: Card[] = [
   { tIn: 0.05, icon: Doc, title: "Every data point", sub: "W-2 · 1099 · K-1 · source docs",
     right: (t) => <div style={{ textAlign: "right", fontFamily: "Outfit" }}><div style={{ fontWeight: 700, fontSize: 40, color: INK, letterSpacing: "-0.02em" }}>{Math.round(1248 * pr(t, 0.3, 1.45, SIN)).toLocaleString("en-US")}</div><div style={{ fontSize: 20, color: SOFT, letterSpacing: "0.1em" }}>FIELDS</div></div>,
     bar: (t) => pr(t, 0.3, 1.45, SIN) },
