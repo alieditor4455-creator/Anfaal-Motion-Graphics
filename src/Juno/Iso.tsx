@@ -1,4 +1,4 @@
-// Juno — isometric glass build (voice-over: 01.MP4, 6.38s; total 7.2s, still ending). 9:16, 60fps.
+// Juno — isometric glass build (voice-over: 01.MP4, 6.38s; total 8.0s, still ending). 9:16, 24fps. Opens with a zoom-out.
 // Follows the client's "Intentional Build v8 iso" reference, rebuilt as Juno Green glass DOCUMENT PAGES:
 // Stage changes are MOSAIC transitions: a diagonal wave of glass tiles flips across the plate and each page
 // card-flips out/in as the wave passes it. End: the top page of every pile fills in, line by line (doc fill).
@@ -9,8 +9,8 @@
 import React from "react";
 import { AbsoluteFill, Audio, Easing, interpolate, staticFile, useCurrentFrame } from "remotion";
 
-export const ISO_FPS = 60;
-export const ISO_FRAMES = Math.round(7.2 * ISO_FPS);
+export const ISO_FPS = 24;
+export const ISO_FRAMES = Math.round(8.0 * ISO_FPS);
 
 const GLIDE = Easing.bezier(0.22, 1, 0.36, 1);
 const MOVE = Easing.bezier(0.45, 0, 0.15, 1);
@@ -54,7 +54,7 @@ const M = (cam: Cam, z0: number) => `matrix(${C30 * cam.S},${0.5 * cam.S},${-C30
 
 type Sheet = { id: string; x: number; y: number; z: number; w: number; d: number; th: number; rot: number; tint: RGB; a: number; glow: number; text: boolean; fl?: number; fills?: number[] };
 const diag = (x: number, y: number) => Math.max(0, Math.min(1, (x + y + 6) / 12)); // back corner 0 -> front corner 1
-const WA = 1.3, WB = 2.65, WC = 4.5, SA = 0.55, SB = 0.5, SC = 0.4; // mosaic waves: start, spread
+const WA = 1.35, WB = 3.2, WC = 5.0, SA = 0.8, SB = 0.75, SC = 0.6; // mosaic waves: start, spread
 
 // one glass document page: footprint (x,y) w*d, thickness th, in-plane rotation rot (deg, about its centre)
 const GlassPage: React.FC<{ c: Sheet; cam: Cam; band: number }> = ({ c, cam, band }) => {
@@ -114,27 +114,28 @@ const GlassPage: React.FC<{ c: Sheet; cam: Cam; band: number }> = ({ c, cam, ban
 export const JunoIso: React.FC = () => {
   const f = useCurrentFrame(); const t = f / ISO_FPS;
 
-  const z = pr(t, 2.6, 4.7, MOVE);
-  const cam: Cam = { S: mix(92, 104, z), cx: 540, cy: mix(1040, 1120, z) };
+  const z = pr(t, 3.3, 5.4, MOVE);
+  const zo = Math.exp(Math.log(3.2) * (1 - pr(t, 0, 1.5, Easing.bezier(0.3, 0, 0.12, 1)))); // opening zoom-out
+  const cam: Cam = { S: mix(92, 104, z) * zo, cx: 540, cy: mix(1040, 1120, z) };
 
-  const plateIn = pr(t, 0.0, 0.7, GLIDE);
-  const gridLines = pr(t, 0.15, 0.85, DRAW);
-  const wave = (n: number) => { const g = GRID[n]; const d = (g.x + g.y + 3) / 6; const c = 2.2 + d * 0.35; return Math.exp(-Math.pow((t - c) / 0.12, 2)); };
-  const cool = pr(t, 2.5, 2.8, SWAP);
-  const seed = pr(t, 3.25, 3.55, GLIDE) * (1 - pr(t, 4.6, 4.9, SWAP));
-  const ripple = pr(t, 3.3, 4.1, Easing.out(Easing.cubic));
-  const scaffold = pr(t, 3.45, 4.45, DRAW);
+  const plateIn = 0.55 + 0.45 * pr(t, 0, 0.6, GLIDE); // visible from frame 1 so the zoom-out reads
+  const gridLines = pr(t, 0, 0.9, DRAW);
+  const wave = (n: number) => { const g = GRID[n]; const d = (g.x + g.y + 3) / 6; const c = 2.75 + d * 0.4; return Math.exp(-Math.pow((t - c) / 0.12, 2)); };
+  const cool = pr(t, 3.0, 3.35, SWAP);
+  const seed = pr(t, 3.9, 4.25, GLIDE) * (1 - pr(t, 5.1, 5.45, SWAP));
+  const ripple = pr(t, 3.95, 4.85, Easing.out(Easing.cubic));
+  const scaffold = pr(t, 4.1, 5.0, DRAW);
   const settled = pr(t, WC, WC + 0.7, SIN);
-  const bloom = pr(t, 5.6, 6.4, SIN);
-  const sweep = pr(t, 5.85, 6.55, SIN);
+  const bloom = pr(t, 6.3, 7.1, SIN);
+  const sweep = pr(t, 6.6, 7.35, SIN);
 
   const sheets: Sheet[] = [];
   GRID.forEach((g, n) => {
-    const l0 = 0.25 + DROP[n].d * 0.6, land = pr(t, l0, l0 + 0.6, Easing.out(Easing.cubic));
+    const l0 = 0.45 + DROP[n].d * 0.6, land = pr(t, l0, l0 + 0.6, Easing.out(Easing.cubic));
     const sc = SCAT[n], dS = diag(sc.x, sc.y), dG = diag(g.x, g.y);
-    const out = pr(t, WA + dS * SA, WA + dS * SA + 0.2, SWAP);                 // scattered page flips out
-    const inn = pr(t, WA + dG * SA + 0.18, WA + dG * SA + 0.42, GLIDE);        // grid page flips in
-    const out2 = pr(t, WB + dG * SB, WB + dG * SB + 0.22, SWAP);              // grid page flips out (to scaffold stage)
+    const out = pr(t, WA + dS * SA, WA + dS * SA + 0.32, SWAP);                 // scattered page flips out
+    const inn = pr(t, WA + dG * SA + 0.26, WA + dG * SA + 0.62, GLIDE);        // grid page flips in
+    const out2 = pr(t, WB + dG * SB, WB + dG * SB + 0.34, SWAP);              // grid page flips out (to scaffold stage)
     if (out < 1 && t >= l0) sheets.push({ id: `s${n}`, x: sc.x - GW / 2, y: sc.y - GD / 2, z: Math.max(0, mix(DROP[n].h, 0, land)), w: GW, d: GD, th: GT, rot: DROP[n].rot,
       tint: GREEN, a: pr(t, l0, l0 + 0.25), glow: 0, text: true, fl: 1 - out });
     if (inn > 0 && out2 < 1) sheets.push({ id: `g${n}`, x: g.x - GW / 2, y: g.y - GD / 2, z: (1 - inn) * 0.35, w: GW, d: GD, th: GT, rot: 0,
@@ -142,11 +143,11 @@ export const JunoIso: React.FC = () => {
   });
   HERO.forEach((h, n) => {
     const m = heroMin(h), dP = diag(m.x + B / 2, m.y + B / 2);
-    const fills = [0, 1, 2, 3, 4, 5].map((i) => pr(t, 5.6 + n * 0.06 + i * 0.09, 5.82 + n * 0.06 + i * 0.09, Easing.inOut(Easing.quad)));
+    const fills = [0, 1, 2, 3, 4, 5].map((i) => pr(t, 6.4 + n * 0.05 + i * 0.09, 6.66 + n * 0.05 + i * 0.09, Easing.inOut(Easing.quad)));
     for (let p = 0; p < PAGES; p++) {
-      const t0 = WC + dP * SC + h[2] * 0.2 + p * 0.035;
-      const fin = pr(t, t0, t0 + 0.3, GLIDE); if (fin <= 0) continue;
-      const sq = pr(t, t0 + 0.15, t0 + 0.55, SIN), j = JIT[n * PAGES + p];
+      const t0 = WC + dP * SC + h[2] * 0.26 + p * 0.05;
+      const fin = pr(t, t0, t0 + 0.45, GLIDE); if (fin <= 0) continue;
+      const sq = pr(t, t0 + 0.2, t0 + 0.75, SIN), j = JIT[n * PAGES + p];
       sheets.push({ id: `h${n}_${p}`, x: m.x + (B - HW) / 2 + j.x * (1 - sq), y: m.y + (B - HD) / 2 + j.y * (1 - sq), z: m.z + 0.03 + p * PPITCH + (1 - fin) * 0.5,
         w: HW, d: HD, th: PT, rot: j.rot * (1 - sq), tint: GREEN, a: pr(t, t0, t0 + 0.12), glow: 0.2 * bloom, text: p === PAGES - 1, fl: fin, fills: p === PAGES - 1 ? fills : undefined });
     }
@@ -156,7 +157,7 @@ export const JunoIso: React.FC = () => {
   for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++) {
     const x = -HALF + 0.25 + i * 0.5, y = -HALF + 0.25 + j * 0.5, dT = diag(x, y);
     ([[WA, SA, 0], [WB, SB, 1], [WC, SC, 2]] as [number, number, number][]).forEach(([w0, sp, k]) => {
-      const f = pr(t, w0 + dT * sp, w0 + dT * sp + 0.32, Easing.linear); if (f > 0 && f < 1) tiles.push({ x, y, f, k }); });
+      const f = pr(t, w0 + dT * sp, w0 + dT * sp + 0.5, Easing.linear); if (f > 0 && f < 1) tiles.push({ x, y, f, k }); });
   }
   sheets.sort((a, b) => (a.x + a.y + a.z + (a.w + a.d) / 2) - (b.x + b.y + b.z + (b.w + b.d) / 2));
 
