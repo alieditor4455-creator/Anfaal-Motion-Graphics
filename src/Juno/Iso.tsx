@@ -52,7 +52,7 @@ export type Cam = { S: number; cx: number; cy: number };
 export const P = (cam: Cam, x: number, y: number, z: number): [number, number] => [cam.cx + (x - y) * C30 * cam.S, cam.cy + (x + y) * 0.5 * cam.S - z * cam.S];
 export const M = (cam: Cam, z0: number) => `matrix(${C30 * cam.S},${0.5 * cam.S},${-C30 * cam.S},${0.5 * cam.S},${cam.cx},${cam.cy - z0 * cam.S})`;
 
-export type Sheet = { id: string; x: number; y: number; z: number; w: number; d: number; th: number; rot: number; tint: RGB; a: number; glow: number; text: boolean; fl?: number; fills?: number[] };
+export type Sheet = { id: string; x: number; y: number; z: number; w: number; d: number; th: number; rot: number; tint: RGB; a: number; glow: number; text: boolean; fl?: number; fills?: number[]; noFold?: boolean };
 const diag = (x: number, y: number) => Math.max(0, Math.min(1, (x + y + 6) / 12)); // back corner 0 -> front corner 1
 const WA = 1.35, WB = 3.2, WC = 5.0, SA = 0.8, SB = 0.75, SC = 0.6; // mosaic waves: start, spread
 
@@ -68,7 +68,7 @@ export const GlassPage: React.FC<{ c: Sheet; cam: Cam; band: number }> = ({ c, c
   const loc: [number, number][] = [];
   const arcL = (cu: number, cv: number, a0: number, a1: number) => { for (let i = 0; i <= 5; i++) { const an = ((a0 + (a1 - a0) * (i / 5)) * Math.PI) / 180; loc.push([cu + R * Math.cos(an), cv + R * Math.sin(an)]); } };
   arcL(R, R, 180, 270);
-  loc.push([w - F, 0], [w, F]);
+  if (c.noFold) arcL(w - R, R, 270, 360); else loc.push([w - F, 0], [w, F]);
   arcL(w - R, d - R, 0, 90);
   arcL(R, d - R, 90, 180);
   const worldPts = loc.map(([u, v]) => W(u, v));
@@ -104,7 +104,7 @@ export const GlassPage: React.FC<{ c: Sheet; cam: Cam; band: number }> = ({ c, c
             return <g key={i}><line x1={x1} y1={l.v} x2={x2} y2={l.v} stroke="rgba(255,255,255,.16)" strokeWidth={sw} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
               {fv > 0.001 && <line x1={x1} y1={l.v} x2={mix(x1, x2, fv)} y2={l.v} stroke={i === 0 ? "#F8F9FA" : "#B4F7CA"} strokeWidth={sw + 0.5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />}</g>; })}
         </g></g>}
-      <path d={toD(fold)} fill="rgba(255,255,255,.35)" stroke={rgba(edge, 0.6)} strokeWidth={1} />
+      {!c.noFold && <path d={toD(fold)} fill="rgba(255,255,255,.35)" stroke={rgba(edge, 0.6)} strokeWidth={1} />}
       <path d={toD(top)} fill="none" stroke={rgba(edge, c.text ? 0.8 : 0.5)} strokeWidth={c.text ? 1.4 : 1.1} strokeLinejoin="round" />
       <path d={"M" + fBot.map((q) => `${q[0].toFixed(2)} ${q[1].toFixed(2)}`).join(" L")} fill="none" stroke={rgba(edge, 0.45)} strokeWidth={1.1} />
       {band > 0 && band < 1 && <path d={side} fill="rgba(255,255,255,.5)" opacity={0.5 * Math.sin(Math.PI * band)} />}
