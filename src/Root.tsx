@@ -12,6 +12,7 @@ import { AnfaalReel5, R5_FRAMES } from "./Anfaal5/Reel";
 import { AnfaalReel5Cover } from "./Anfaal5/Cover";
 import { JunoDark, JunoNoDave, JUNO_FRAMES, JUNO_FPS } from "./Juno/Motion";
 import { JunoLogo, LOGO_FRAMES, LOGO_FPS } from "./Juno/Logo";
+import { JunoChips, CHIPS_FRAMES, CHIPS_FPS } from "./Juno/Chips";
 import { JunoIso, ISO_FRAMES, ISO_FPS } from "./Juno/Iso";
 import { JunoChaos3D, C3D_FRAMES, C3D_FPS } from "./Juno/Chaos3D";
 import { JunoChaos, JunoChaosGlass, CHAOS_FRAMES, CHAOS_FPS } from "./Juno/Chaos";
@@ -29,6 +30,7 @@ export const RemotionRoot: React.FC = () => (
     <Still id="AnfaalReel3Cover" component={AnfaalReel3Cover} width={1080} height={1920} />
     <Still id="AnfaalReel2Cover" component={AnfaalReel2Cover} width={1080} height={1920} />
     <Still id="AnfaalCoverTransform" component={AnfaalCoverTransform} width={1080} height={1920} />
+    <Composition id="JunoChips" component={JunoChips} durationInFrames={CHIPS_FRAMES} fps={CHIPS_FPS} width={1080} height={1920} />
     <Composition id="JunoIso" component={JunoIso} durationInFrames={ISO_FRAMES} fps={ISO_FPS} width={1080} height={1920} />
     <Composition id="JunoChaos3D" component={JunoChaos3D} durationInFrames={C3D_FRAMES} fps={C3D_FPS} width={1080} height={1920} />
     <Composition id="JunoChaosGlass" component={JunoChaosGlass} durationInFrames={CHAOS_FRAMES} fps={CHAOS_FPS} width={1080} height={1920} />
