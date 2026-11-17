@@ -1,5 +1,5 @@
 // Juno — isometric glass build (voice-over: 01.MP4, 6.38s; total 7.2s, still ending). 9:16, 60fps.
-// Follows the client's "Intentional Build v8 iso" reference, rebuilt in premium Juno Green glass:
+// Follows the client's "Intentional Build v8 iso" reference, rebuilt as soft rounded Juno Green glass pills (no square boxes):
 //  phrase 1  plate draws on; glass cubes rain in and land scattered (caustic light + soft shadow on the plate)
 //  phrase 2  cubes glide into a 4x4 grid; a light wave runs across them
 //  phrase 3  the grid cools to clear glass and dissolves; a seed pulses; a dashed scaffold grows up
@@ -48,48 +48,55 @@ type Cam = { S: number; cx: number; cy: number };
 const P = (cam: Cam, x: number, y: number, z: number): [number, number] => [cam.cx + (x - y) * C30 * cam.S, cam.cy + (x + y) * 0.5 * cam.S - z * cam.S];
 const poly = (pts: [number, number][]) => pts.map((p) => `${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(" ");
 
-type Hide = { r: number; l: number; t: number; b1: number; b2: number };
-type Cube = { id: string; x: number; y: number; z: number; s: number; tint: RGB; a: number; glow: number; hide?: Hide };
+type Cube = { id: string; x: number; y: number; z: number; s: number; tint: RGB; a: number; glow: number; h?: number; rr?: number };
+// plane z=z0 as an affine matrix: draw world-space rounded rects and they project exactly
+const M = (cam: Cam, z0: number) => `matrix(${C30 * cam.S},${0.5 * cam.S},${-C30 * cam.S},${0.5 * cam.S},${cam.cx},${cam.cy - z0 * cam.S})`;
 
-// one glass cube (min corner x,y,z; size s)
-const GlassCube: React.FC<{ c: Cube; cam: Cam; sweep: number }> = ({ c, cam, sweep }) => {
-  const { x, y, z, s, tint, a } = c; const H = c.hide || { r: 0, l: 0, t: 0, b1: 0, b2: 0 };
+
+// soft rounded glass pill: world footprint (x,y) size s, height h*s, corner radius rr*s
+const GlassPill: React.FC<{ c: Cube; cam: Cam; band: number }> = ({ c, cam, band }) => {
+  const { x, y, z, s, tint, a } = c;
   if (a <= 0.003 || s <= 0.01) return null;
-  const v = (dx: number, dy: number, dz: number) => P(cam, x + dx * s, y + dy * s, z + dz * s);
-  const top = [v(0, 0, 1), v(1, 0, 1), v(1, 1, 1), v(0, 1, 1)];
-  const right = [v(1, 0, 0), v(1, 1, 0), v(1, 1, 1), v(1, 0, 1)];   // x = max
-  const left = [v(0, 1, 0), v(1, 1, 0), v(1, 1, 1), v(0, 1, 1)];    // y = max
-  const back1 = [v(0, 0, 0), v(0, 1, 0), v(0, 1, 1), v(0, 0, 1)];   // x = min
-  const back2 = [v(0, 0, 0), v(1, 0, 0), v(1, 0, 1), v(0, 0, 1)];   // y = min
+  const H = (c.h ?? 1) * s, R = (c.rr ?? 0.35) * s, S = cam.S, zt = z + H;
   const lit = mixC(tint, [255, 255, 255], 0.35 * c.glow);
-  const topC = mixC(lit, LIGHT, 0.55), leftC = lit, rightC = mixC(lit, DEEP, 0.45);
-  const edge = mixC(lit, [255, 255, 255], 0.65);
-  // inset bevel on the top face (thickness cue)
-  const k = 0.12, bev = [v(k, k, 1), v(1 - k, k, 1), v(1 - k, 1 - k, 1), v(k, 1 - k, 1)];
-  // specular streak across the two front faces (u along the face width)
-  const strip = (q: [number, number][], u0: number, u1: number) => {
-    const L = (p0: [number, number], p1: [number, number], u: number): [number, number] => [mix(p0[0], p1[0], u), mix(p0[1], p1[1], u)];
-    return [L(q[0], q[1], u0), L(q[0], q[1], u1), L(q[3], q[2], u1), L(q[3], q[2], u0)];
-  };
-  const sw = sweep;
+  const topC = mixC(lit, LIGHT, 0.55), leftC = lit, rightC = mixC(lit, DEEP, 0.5), edge = mixC(lit, [255, 255, 255], 0.65);
+  const k = Math.SQRT2;
+  const XL = cam.cx + C30 * S * ((x - (y + s)) + 2 * R - R * k), XR = cam.cx + C30 * S * ((x + s - y) - 2 * R + R * k);
+  const Yt = cam.cy + 0.5 * S * (x + y + s) - zt * S, Yb = Yt + H * S;
+  const XF = cam.cx + C30 * S * (x - y);                                   // front corner (screen x)
+  const YfT = cam.cy + 0.5 * S * (x + y + 2 * s - 2 * R + R * k) - zt * S; // front-most point of the top face
+  const id = c.id;
+  // front half of the bottom rim (left silhouette point -> front corner -> right silhouette point), world -> screen
+  const arc = (cx0: number, cy0: number, a0: number, a1: number) => [...Array(9)].map((_, i) => { const an = ((a0 + (a1 - a0) * (i / 8)) * Math.PI) / 180; return P(cam, cx0 + R * Math.cos(an), cy0 + R * Math.sin(an), z); });
+  const front = [...arc(x + R, y + s - R, 135, 90), ...arc(x + s - R, y + s - R, 90, 0), ...arc(x + s - R, y + R, 0, -45)];
+  const side = `M${XL} ${Yt} ` + front.map((q) => `L${q[0].toFixed(2)} ${q[1].toFixed(2)}`).join(" ") + ` L${XR} ${Yt} Z`;
+  const bw = 0.13 * s * S, bx = XF - 0.22 * s * S + band * 0.44 * s * S;
+  const rect = (z0: number, inset: number, props: React.SVGProps<SVGRectElement>) => (
+    <g transform={M(cam, z0)}><rect x={x + inset} y={y + inset} width={s - 2 * inset} height={s - 2 * inset} rx={Math.max(0.001, R - inset * 0.6)} vectorEffect="non-scaling-stroke" {...props} /></g>);
   return (
     <g opacity={a}>
-      {/* back faces + hidden edges (glass: you see through) */}
-      <polygon points={poly(back1)} fill={rgba(rightC, 0.1 * (1 - H.b1))} />
-      <polygon points={poly(back2)} fill={rgba(leftC, 0.1 * (1 - H.b2))} />
-      <polyline points={poly([v(0, 0, 1), v(0, 0, 0), v(1, 0, 0)])} fill="none" stroke={rgba(edge, 0.22)} strokeWidth={1.2} />
-      <line x1={v(0, 0, 0)[0]} y1={v(0, 0, 0)[1]} x2={v(0, 1, 0)[0]} y2={v(0, 1, 0)[1]} stroke={rgba(edge, 0.22)} strokeWidth={1.2} />
-      {/* front faces */}
-      <g opacity={1 - H.l}><polygon points={poly(left)} fill={rgba(leftC, 0.5)} /><polygon points={poly(left)} fill="url(#isoSheenL)" /></g>
-      <g opacity={1 - H.r}><polygon points={poly(right)} fill={rgba(rightC, 0.56)} /><polygon points={poly(right)} fill="url(#isoSheenR)" /></g>
-      <g opacity={1 - H.t}><polygon points={poly(top)} fill={rgba(topC, 0.62)} /><polygon points={poly(top)} fill="url(#isoSheenT)" />
-        <polygon points={poly(bev)} fill="none" stroke={rgba([255, 255, 255], 0.22)} strokeWidth={1} /></g>
-      {sw > 0 && sw < 1 && H.l < 0.5 && (() => { const u = sw * 1.5 - 0.25, w = 0.16; const u0 = Math.max(0, u - w), u1 = Math.min(1, u + w);
-        return u1 > u0 ? <polygon points={poly(strip(left as any, u0, u1))} fill="url(#isoSweep)" opacity={Math.sin(Math.PI * sw)} /> : null; })()}
-      {/* visible edges */}
-      <polygon points={poly(top)} fill="none" stroke={rgba(edge, 0.85)} strokeWidth={1.6} strokeLinejoin="round" />
-      <polyline points={poly([v(0, 1, 1), v(0, 1, 0), v(1, 1, 0), v(1, 0, 0), v(1, 0, 1)])} fill="none" stroke={rgba(edge, 0.6)} strokeWidth={1.4} strokeLinejoin="round" />
-      <line x1={v(1, 1, 0)[0]} y1={v(1, 1, 0)[1]} x2={v(1, 1, 1)[0]} y2={v(1, 1, 1)[1]} stroke={rgba([255, 255, 255], 0.85)} strokeWidth={1.8} />
+      <defs>
+        <linearGradient id={`ps${id}`} gradientUnits="userSpaceOnUse" x1={XL} y1={0} x2={XR} y2={0}>
+          <stop offset="0" stopColor={rgba(mixC(leftC, LIGHT, 0.25), 1)} /><stop offset="0.46" stopColor={rgba(leftC, 1)} />
+          <stop offset="0.54" stopColor={rgba(mixC(lit, rightC, 0.5), 1)} /><stop offset="1" stopColor={rgba(rightC, 1)} />
+        </linearGradient>
+      </defs>
+      {/* back rim seen through the glass */}
+      {rect(z, 0, { fill: rgba(rightC, 0.08), stroke: rgba(edge, 0.25), strokeWidth: 1.2 })}
+      {/* rounded side wall */}
+      <path d={side} fill={`url(#ps${id})`} opacity={0.55} />
+      <path d={side} fill="url(#isoShade)" />
+      {/* soft specular band down the rounded front */}
+      <rect x={bx - bw / 2} y={YfT} width={bw} height={H * S} rx={bw / 2} fill="url(#isoBand)" opacity={0.55 + 0.45 * c.glow} />
+      {/* top face: tinted glass + dome highlight + inner bevel */}
+      <g opacity={0.62}>{rect(zt, 0, { fill: rgba(topC, 1) })}</g>
+      {rect(zt, 0, { fill: "url(#isoDome)" })}
+      {rect(zt, 0.1 * s, { fill: "none", stroke: "rgba(255,255,255,.24)", strokeWidth: 1 })}
+      {/* outlines */}
+      {rect(zt, 0, { fill: "none", stroke: rgba(edge, 0.85), strokeWidth: 1.6 })}
+      <line x1={XL} y1={Yt} x2={XL} y2={Yb} stroke={rgba(edge, 0.5)} strokeWidth={1.3} />
+      <line x1={XR} y1={Yt} x2={XR} y2={Yb} stroke={rgba(edge, 0.4)} strokeWidth={1.3} />
+      {rect(z, 0, { fill: "none", stroke: rgba(edge, 0.5), strokeWidth: 1.4 })}
     </g>);
 };
 
@@ -124,33 +131,22 @@ export const JunoIso: React.FC = () => {
     const dis = dissolve(n);
     const s = SMALL * (1 - dis);
     const zz = mix(DROP[n].h, 0, land) - 0.25 * dis;
-    cubes.push({ id: `g${n}`, x: cxw - s / 2, y: cyw - s / 2, z: Math.max(0, zz), s, tint: mixC(GREEN, CLEAR, cool), a: (t < 0.35 + DROP[n].d ? 0 : pr(t, 0.35 + DROP[n].d, 0.6 + DROP[n].d)) * (1 - dis), glow: wave(n) });
+    cubes.push({ id: `g${n}`, h: 0.5, rr: 0.42, x: cxw - s / 2, y: cyw - s / 2, z: Math.max(0, zz), s, tint: mixC(GREEN, CLEAR, cool), a: (t < 0.35 + DROP[n].d ? 0 : pr(t, 0.35 + DROP[n].d, 0.6 + DROP[n].d)) * (1 - dis), glow: wave(n) });
   });
-  const idxOf = (a: number, b: number, c: number) => HERO.findIndex((q) => q[0] === a && q[1] === b && q[2] === c);
-  const landed = (n: number) => (n < 0 ? 0 : pr(heroDrop(n), 0.94, 1, Easing.linear));
+  const PS = B - 0.14, PO = 0.07; // pill size + gap inside each slot
   HERO.forEach((h, n) => {
     const m = heroMin(h), d = heroDrop(n);
     if (t < 4.55 + n * 0.12) return;
-    const me = landed(n);
-    const hide = { r: Math.min(me, landed(idxOf(h[0] + 1, h[1], h[2]))), l: Math.min(me, landed(idxOf(h[0], h[1] + 1, h[2]))), t: Math.min(me, landed(idxOf(h[0], h[1], h[2] + 1))),
-      b1: Math.min(me, landed(idxOf(h[0] - 1, h[1], h[2]))), b2: Math.min(me, landed(idxOf(h[0], h[1] - 1, h[2]))) };
-    cubes.push({ id: `h${n}`, x: m.x, y: m.y, z: m.z + (1 - d) * 5.5, s: B, tint: GREEN, a: pr(t, 4.55 + n * 0.12, 4.8 + n * 0.12), glow: 0.25 * bloom, hide });
+    cubes.push({ id: `h${n}`, h: 1, rr: 0.36, x: m.x + PO, y: m.y + PO, z: m.z + PO * 0.5 + (1 - d) * 5.5, s: PS, tint: GREEN, a: pr(t, 4.55 + n * 0.12, 4.8 + n * 0.12), glow: 0.25 * bloom });
   });
-  cubes.sort((a, b) => (a.x + a.y + a.z + 1.5 * a.s) - (b.x + b.y + b.z + 1.5 * b.s));
+  cubes.sort((a, b) => (a.x + a.y + a.z + a.s) - (b.x + b.y + b.z + b.s));
 
   // plate geometry
   const plateC = [P(cam, -HALF, -HALF, 0), P(cam, HALF, -HALF, 0), P(cam, HALF, HALF, 0), P(cam, -HALF, HALF, 0)];
   const lines: [number, number][][] = [];
   for (let k = -2; k <= 2; k++) { lines.push([P(cam, k, -HALF, 0), P(cam, k, HALF, 0)]); lines.push([P(cam, -HALF, k, 0), P(cam, HALF, k, 0)]); }
-  // scaffold edges (unique) for the hero slots
-  const scafEdges: [number, number, number, number, number, number][] = [];
-  const seen = new Set<string>();
-  const addE = (a: number[], b: number[]) => { const key = [a, b].map((q) => q.map((v) => v.toFixed(2)).join(",")).sort().join("|"); if (seen.has(key)) return; seen.add(key); scafEdges.push([a[0], a[1], a[2], b[0], b[1], b[2]]); };
-  HERO.forEach((h) => { const m = heroMin(h); const X = [m.x, m.x + B], Y = [m.y, m.y + B], Z = [m.z, m.z + B];
-    for (const xx of X) for (const yy of Y) addE([xx, yy, Z[0]], [xx, yy, Z[1]]);
-    for (const xx of X) for (const zz of Z) addE([xx, Y[0], zz], [xx, Y[1], zz]);
-    for (const yy of Y) for (const zz of Z) addE([X[0], yy, zz], [X[1], yy, zz]); });
   const scafH = scaffold * 3 * B; // grows upward
+  const PS0 = 0.07;
   const scafFade = 1 - settled;
 
   const heroCenter = P(cam, 0, 0, 1.2 * B);
@@ -165,10 +161,9 @@ export const JunoIso: React.FC = () => {
 
       <svg width={1080} height={1920} style={{ position: "absolute", inset: 0, overflow: "visible" }}>
         <defs>
-          <linearGradient id="isoSheenT" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff" stopOpacity={0.38} /><stop offset="0.5" stopColor="#fff" stopOpacity={0.06} /><stop offset="1" stopColor="#fff" stopOpacity={0} /></linearGradient>
-          <linearGradient id="isoSheenL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" stopOpacity={0.2} /><stop offset="0.6" stopColor="#fff" stopOpacity={0} /><stop offset="1" stopColor="#000" stopOpacity={0.12} /></linearGradient>
-          <linearGradient id="isoSheenR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" stopOpacity={0.1} /><stop offset="0.7" stopColor="#000" stopOpacity={0.05} /><stop offset="1" stopColor="#000" stopOpacity={0.22} /></linearGradient>
-          <linearGradient id="isoSweep" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#fff" stopOpacity={0} /><stop offset="0.5" stopColor="#fff" stopOpacity={0.28} /><stop offset="1" stopColor="#fff" stopOpacity={0} /></linearGradient>
+          <linearGradient id="isoBand" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#fff" stopOpacity={0} /><stop offset="0.5" stopColor="#fff" stopOpacity={0.4} /><stop offset="1" stopColor="#fff" stopOpacity={0} /></linearGradient>
+          <linearGradient id="isoShade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" stopOpacity={0.1} /><stop offset="0.5" stopColor="#000" stopOpacity={0} /><stop offset="1" stopColor="#000" stopOpacity={0.2} /></linearGradient>
+          <radialGradient id="isoDome" cx="0.32" cy="0.3" r="0.75"><stop offset="0" stopColor="#fff" stopOpacity={0.42} /><stop offset="0.45" stopColor="#fff" stopOpacity={0.08} /><stop offset="1" stopColor="#fff" stopOpacity={0} /></radialGradient>
           <linearGradient id="isoPlate" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#2a2f2d" /><stop offset="1" stopColor="#1b1f1d" /></linearGradient>
           <filter id="isoBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10" /></filter>
           <filter id="isoBloom" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="26" /></filter>
@@ -188,11 +183,10 @@ export const JunoIso: React.FC = () => {
         {/* caustics + contact shadows on the plate */}
         <g filter="url(#isoBlur)">
           {cubes.map((c) => { if (c.a <= 0.01) return null; const near = Math.max(0, 1 - c.z / 4);
-            const fp = [P(cam, c.x, c.y, 0), P(cam, c.x + c.s, c.y, 0), P(cam, c.x + c.s, c.y + c.s, 0), P(cam, c.x, c.y + c.s, 0)];
-            const sh = [P(cam, c.x + 0.15 * c.s, c.y + 0.25 * c.s, 0), P(cam, c.x + 1.25 * c.s, c.y + 0.25 * c.s, 0), P(cam, c.x + 1.25 * c.s, c.y + 1.35 * c.s, 0), P(cam, c.x + 0.15 * c.s, c.y + 1.35 * c.s, 0)];
-            return <g key={`sh${c.id}`} opacity={c.a * near}>
-              <polygon points={poly(sh)} fill="rgba(0,0,0,.55)" />
-              <polygon points={poly(fp)} fill={rgba(c.tint, 0.45)} />
+            const R0 = (c.rr ?? 0.35) * c.s;
+            return <g key={`sh${c.id}`} opacity={c.a * near} transform={M(cam, 0)}>
+              <rect x={c.x + 0.15 * c.s} y={c.y + 0.25 * c.s} width={c.s * 1.1} height={c.s * 1.1} rx={R0} fill="rgba(0,0,0,.55)" />
+              <rect x={c.x} y={c.y} width={c.s} height={c.s} rx={R0} fill={rgba(c.tint, 0.45)} />
             </g>; })}
         </g>
 
@@ -203,22 +197,20 @@ export const JunoIso: React.FC = () => {
         </g>}
 
         {/* dashed scaffold, grows upward */}
-        {scaffold > 0 && scafFade > 0 && <g opacity={scafFade} stroke="#1CE49B" strokeWidth={2} strokeDasharray="6 7" strokeLinecap="round">
-          {scafEdges.map((e, n) => {
-            const z0 = Math.min(e[2], e[5]), z1 = Math.max(e[2], e[5]);
-            if (z0 > scafH + 1e-6) return null;
-            let b = [e[3], e[4], e[5]]; const a = [e[0], e[1], e[2]];
-            if (z1 > scafH) { const q = (scafH - z0) / (z1 - z0); const lo = e[2] < e[5] ? a : b, hi = e[2] < e[5] ? b : a; b = [mix(lo[0], hi[0], q), mix(lo[1], hi[1], q), mix(lo[2], hi[2], q)]; return (() => { const p0 = P(cam, lo[0], lo[1], lo[2]), p1 = P(cam, b[0], b[1], b[2]); return <line key={n} x1={p0[0]} y1={p0[1]} x2={p1[0]} y2={p1[1]} opacity={0.75} />; })(); }
-            const p0 = P(cam, a[0], a[1], a[2]), p1 = P(cam, b[0], b[1], b[2]);
-            return <line key={n} x1={p0[0]} y1={p0[1]} x2={p1[0]} y2={p1[1]} opacity={0.75} />;
-          })}
+        {scaffold > 0 && scafFade > 0 && <g opacity={scafFade * 0.8}>
+          {HERO.map((h, n) => { const m = heroMin(h); const x = m.x + PS0, y = m.y + PS0, sz = B - 2 * PS0, R = 0.36 * sz, z0 = m.z, z1 = m.z + sz;
+            const XL = cam.cx + C30 * cam.S * ((x - (y + sz)) + 2 * R - R * Math.SQRT2), XR = cam.cx + C30 * cam.S * ((x + sz - y) - 2 * R + R * Math.SQRT2);
+            const Y0 = cam.cy + 0.5 * cam.S * (x + y + sz) - z0 * cam.S; const top = Math.min(z1, scafH); if (scafH < z0) return null;
+            const ring = (zz: number) => <g transform={M(cam, zz)}><rect x={x} y={y} width={sz} height={sz} rx={R} fill="none" stroke="#1CE49B" strokeWidth={2} strokeDasharray="6 7" vectorEffect="non-scaling-stroke" /></g>;
+            return <g key={n}>{ring(z0)}{scafH >= z1 && ring(z1)}
+              {[XL, XR].map((X, q) => <line key={q} x1={X} y1={Y0} x2={X} y2={Y0 - (top - z0) * cam.S} stroke="#1CE49B" strokeWidth={2} strokeDasharray="6 7" />)}</g>; })}
         </g>}
 
         {/* bloom behind the finished tower */}
         {bloom > 0 && <ellipse cx={heroCenter[0]} cy={heroCenter[1]} rx={270} ry={310} fill="#1CE49B" opacity={0.28 * bloom} filter="url(#isoBloom)" />}
 
         {/* glass cubes, back to front */}
-        {cubes.map((c) => <GlassCube key={c.id} c={c} cam={cam} sweep={c.id[0] === "h" ? sweep : 0} />)}
+        {cubes.map((c) => <GlassPill key={c.id} c={c} cam={cam} band={c.id[0] === "h" ? sweep : 0.5} />)}
       </svg>
     </AbsoluteFill>
   );
