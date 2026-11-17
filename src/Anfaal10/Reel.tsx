@@ -11,8 +11,8 @@ const FPS = 30;
 export const R10_DURATION = 58.3;
 export const R10_FRAMES = Math.round(R10_DURATION * FPS);
 const s = (t: number) => Math.round(t * FPS);
-const G = "#12B76A", G2 = "#0B8A4E", GOLD = K.gold, INK = "#0F1A14", MUTED = "rgba(15,26,20,.5)";
-const GRAD = `linear-gradient(100deg, ${G2} 0%, ${G} 50%, #C9A24E 100%)`;
+const G = "#E5172F", G2 = "#B30F22", WIN = "#12B76A", GOLD = K.gold, INK = "#0F1A14", MUTED = "rgba(15,26,20,.5)";
+const GRAD = `linear-gradient(100deg, #FF5A6A 0%, ${G} 55%, ${G2} 100%)`;
 const soft = (f: number, at: number, st = 150, d = 15) => spring({ frame: f - at, fps: FPS, config: { stiffness: st, damping: d, mass: 0.8 } });
 const At: React.FC<{ from: number; to: number; children: React.ReactNode }> = ({ from, to, children }) => (
   <Sequence from={s(from)} durationInFrames={s(to) - s(from)} layout="none">{children}</Sequence>
@@ -40,6 +40,7 @@ const Footage: React.FC = () => {
         <div style={{ position: "absolute", left: (W - 1080) / 2, top: mix(k, 0, -700), transform: `scale(${zoomAt(t) * mix(k, 1, 0.62)})`, transformOrigin: "540px 1000px" }}>
           <Frame t={t} />
         </div>
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,.42) 0%, rgba(0,0,0,.18) 28%, rgba(0,0,0,0) 40%)" }} />
       </div>
     </AbsoluteFill>
   );
@@ -57,7 +58,8 @@ const GridWorld: React.FC<{ k: number }> = ({ k }) => {
   );
 };
 
-/* ------------------------------------------------ captions above the head (white frosted plate, dark ink) */
+/* ------------------------------------------------ captions above the head: no box, bold white + shadow, keyword in a red pill */
+const SH = "0 3px 0 rgba(0,0,0,.25), 0 6px 22px rgba(0,0,0,.55), 0 0 2px rgba(0,0,0,.6)";
 const SyncedCaptions: React.FC = () => {
   const f = useCurrentFrame();
   const t = f / FPS;
@@ -66,29 +68,28 @@ const SyncedCaptions: React.FC = () => {
   const line = LINES[i];
   const end = Math.min(LINES[i + 1]?.t0 ?? 1e9, line.t1 + 0.6);
   const out = p(f, s(end) - 5, 5, easeIn);
-  const small = line.words.filter((w) => !w.hero);
-  const hero = line.words.filter((w) => w.hero);
-  const appear = (wt: number) => p(f, s(wt) - 1, 7, easeOut);
-  const pa = appear(line.words[0].t);
-  const heroTxt = hero.map((h) => h.w).join(" ");
+  const appear = (wt: number) => p(f, s(wt) - 1, 6, easeOut);
+  const light = [[17.2, 19.94], [37.0, 39.85]].some(([a, b]) => t >= a && t < b); // white full-screen scenes → dark ink
+  // group consecutive hero words into one pill
+  const items: { hero: boolean; words: { w: string; t: number }[] }[] = [];
+  for (const w of line.words) {
+    const last = items[items.length - 1];
+    if (last && last.hero === w.hero && w.hero) last.words.push(w); else items.push({ hero: w.hero, words: [w] });
+  }
   return (
-    <div style={{ position: "absolute", left: 60, right: 60, top: 150, display: "flex", flexDirection: "column", alignItems: "center", opacity: 1 - out, filter: out ? `blur(${out * 10}px)` : undefined }}>
-      <div style={{ position: "absolute", inset: "-18px 0 -22px 0", borderRadius: 38, background: "rgba(255,255,255,.9)", border: "1px solid rgba(255,255,255,1)", boxShadow: "0 24px 60px rgba(0,0,0,.18)", opacity: pa, transform: `scale(${mix(pa, 0.96, 1)})` }} />
-      <div style={{ position: "relative", display: "flex", flexWrap: "wrap", justifyContent: "center", columnGap: 11, maxWidth: 900 }}>
-        {small.map((w, k) => {
-          const a = appear(w.t);
-          return <span key={k} style={{ fontFamily: "Inter", fontWeight: 500, fontSize: 42, letterSpacing: -1.2, color: INK, opacity: a, filter: `blur(${(1 - a) * 8}px)`, transform: `translateY(${(1 - a) * 16}px)`, display: "inline-block" }}>{w.w}</span>;
-        })}
-      </div>
-      {hero.length ? (
-        <div style={{ position: "relative", display: "flex", gap: 20, marginTop: -4 }}>
-          {hero.map((w, k) => {
-            const a = appear(w.t);
-            const b = soft(f, s(w.t) - 1);
-            return <span key={k} style={{ fontFamily: "Inter", fontWeight: 800, fontSize: heroTxt.length > 16 ? 84 : heroTxt.length > 11 ? 100 : 118, letterSpacing: -5, lineHeight: 1.04, whiteSpace: "nowrap", backgroundImage: GRAD, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", opacity: a, display: "inline-block", paddingRight: 4, transform: `translateY(${(1 - b) * 36}px) scale(${mix(Math.min(b, 1), 0.9, 1)})`, filter: `blur(${(1 - a) * 10}px)` }}>{w.w.toLowerCase().replace(/[,.]/g, "")}</span>;
-          })}
-        </div>
-      ) : null}
+    <div style={{ position: "absolute", left: 50, right: 50, top: 190, display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", columnGap: 14, rowGap: 8, opacity: 1 - out, filter: out ? `blur(${out * 10}px)` : undefined }}>
+      {items.map((it, k) => {
+        if (!it.hero) {
+          const w = it.words[0]; const a = appear(w.t); const b = soft(f, s(w.t) - 1, 220, 14);
+          return <span key={k} style={{ fontFamily: "Inter", fontWeight: 800, fontSize: 64, letterSpacing: -2, lineHeight: 1.1, color: light ? INK : "#fff", textShadow: light ? "none" : SH, opacity: a, display: "inline-block", transform: `translateY(${(1 - Math.min(b, 1)) * 26}px) scale(${mix(Math.min(b, 1.08), 0.85, 1)})`, filter: `blur(${(1 - a) * 6}px)` }}>{w.w.replace(/[,.]$/, "")}</span>;
+        }
+        const t0 = it.words[0].t; const a = appear(t0); const b = soft(f, s(t0) - 1, 200, 12);
+        return (
+          <span key={k} style={{ display: "inline-flex", gap: 14, padding: "4px 24px 10px", borderRadius: 20, background: GRAD, boxShadow: `0 14px 34px ${G}77, inset 0 2px 0 rgba(255,255,255,.3)`, opacity: a, transform: `rotate(-2deg) translateY(${(1 - Math.min(b, 1)) * 34}px) scale(${mix(Math.min(b, 1.12), 0.6, 1)})` }}>
+            {it.words.map((w, j) => <span key={j} style={{ fontFamily: "Inter", fontWeight: 900, fontSize: 70, letterSpacing: -2.4, lineHeight: 1.1, color: "#fff", opacity: appear(w.t) }}>{w.w.toLowerCase().replace(/[,.]/g, "")}</span>)}
+          </span>
+        );
+      })}
     </div>
   );
 };
@@ -232,7 +233,7 @@ const Title: React.FC<{ text: string; at: number; top: number; color?: string; s
 const TilesScene: React.FC = () => {
   const f = useCurrentFrame();
   const L = s(19.94 - 16.94);
-  const tiles: [string, string, string, number][] = [["Mobile", "📱", `linear-gradient(160deg, #3BD58B, ${G2})`, 8], ["Internet", "📶", `linear-gradient(160deg, #F1D38C, #C9963E)`, 16], ["Office", "🏢", "linear-gradient(160deg, #D9DEDB, #AEB7B2)", 24]];
+  const tiles: [string, string, string, number][] = [["Mobile", "📱", "linear-gradient(160deg, #5BC2FF, #1E7FE0)", 8], ["Internet", "📶", "linear-gradient(160deg, #FF7A86, #E5172F)", 16], ["Office", "🏢", "linear-gradient(160deg, #D9DEDB, #AEB7B2)", 24]];
   return (
     <Scene dur={L} bg="radial-gradient(90% 60% at 50% 45%, #FFFFFF 0%, #EEF2EF 100%)">
       <Title text="Forex mein sirf" at={4} top={640} />
@@ -262,7 +263,7 @@ const NewsScene: React.FC = () => {
   const rot = interpolate(f, [0, L], [-2, 2]);
   const hit = p(f, s(22.75 - 19.94), 8);
   return (
-    <Scene dur={L} bg={`radial-gradient(100% 70% at 50% 40%, #2FD27E 0%, ${G2} 55%, #05442A 100%)`}>
+    <Scene dur={L} bg={`radial-gradient(100% 70% at 50% 40%, #FF6B78 0%, ${G} 50%, #8E0A1A 100%)`}>
       {[[-22, -330, "First impact"], [20, 330, "USD"], [-10, -250, "Volatility"], [12, 260, "Gold"]].map(([r, x, l], i) => (
         <div key={i} style={{ position: "absolute", left: 540 - 230 + (x as number) * fan, top: 820 + (i > 1 ? 330 : 0), width: 460, height: 300, borderRadius: 34, background: "rgba(255,255,255,.88)", transform: `rotate(${(r as number) * fan + rot}deg)`, boxShadow: "0 30px 60px rgba(0,0,0,.25)", opacity: 0.75 * fan, filter: "blur(2px)", padding: 30, fontFamily: "Inter", fontWeight: 700, fontSize: 34, color: G2 }}>● {l}</div>
       ))}
@@ -293,7 +294,7 @@ const ChartScene: React.FC = () => {
     const a = p(f, at, 10);
     return (
       <div style={{ position: "absolute", left: 0, top: (y - y0) * k - 2, width: 640 * k * a, borderTop: `4px dashed ${c}` }}>
-        <div style={{ position: "absolute", left: 14, top: -46, padding: "5px 14px", borderRadius: 10, background: hit && tp > 0.5 ? G : c, fontFamily: "Inter", fontWeight: 800, fontSize: 24, color: "#fff", opacity: a, whiteSpace: "nowrap" }}>{hit && tp > 0.5 ? text + "  HIT ✓" : text}</div>
+        <div style={{ position: "absolute", left: 14, top: -46, padding: "5px 14px", borderRadius: 10, background: hit && tp > 0.5 ? WIN : c, fontFamily: "Inter", fontWeight: 800, fontSize: 24, color: "#fff", opacity: a, whiteSpace: "nowrap" }}>{hit && tp > 0.5 ? text + "  HIT ✓" : text}</div>
       </div>
     );
   };
@@ -306,8 +307,8 @@ const ChartScene: React.FC = () => {
         </div>
         {line(614, GOLD, "SELL 3857", 4)}
         {line(254, "#E5484D", "SL 3868", 10)}
-        {line(1010, "#7FD6A8", "TP1 3845", 16, true)}
-        {line(1338, "#7FD6A8", "TP2 3835", 20, true)}
+        {line(1010, "#3FA877", "TP1 3845", 16, true)}
+        {line(1338, "#3FA877", "TP2 3835", 20, true)}
       </div>
       <div style={{ position: "absolute", left: 0, right: 0, top: 1660, display: "flex", justifyContent: "center", gap: 20, alignItems: "center" }}>
         <div style={{ padding: "16px 34px", borderRadius: 24, background: GRAD, fontFamily: "Inter", fontWeight: 900, fontSize: 72, letterSpacing: -2, color: "#fff", boxShadow: `0 20px 50px ${G}66`, opacity: p(f, 28, 6), transform: `scale(${mix(Math.min(st, 1.15), 1, 1.08)})` }}>+{pips} pips</div>
