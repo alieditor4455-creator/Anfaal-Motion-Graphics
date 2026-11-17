@@ -106,11 +106,11 @@ const Head: React.FC<{ icon: string; title: string; tint?: string }> = ({ icon, 
   </div>
 );
 /** card that pops onto the chest (enter: scale-up + blur, exit: drop + blur) */
-const Pop: React.FC<{ dur: number; children: React.ReactNode; top?: number; w?: number }> = ({ dur, children, top = 1440, w = 820 }) => {
+const Pop: React.FC<{ dur: number; children: React.ReactNode; top?: number; w?: number }> = ({ dur, children, top = 400, w = 820 }) => {
   const f = useCurrentFrame();
   const a = soft(f, 0, 170, 14), o = p(f, dur - 8, 8, easeIn);
   return (
-    <div style={{ position: "absolute", left: (1080 - w) / 2, top, width: w, opacity: Math.min(1, a * 1.4) * (1 - o), transform: `translateY(${(1 - Math.min(a, 1)) * 120 + o * 60}px) scale(${mix(Math.min(a, 1.06), 0.7, 1) * mix(o, 1, 0.92)})`, filter: (a < 0.6 || o > 0) ? `blur(${Math.max(0, 0.6 - a) * 18 + o * 12}px)` : undefined, transformOrigin: "50% 100%" }}>
+    <div style={{ position: "absolute", left: (1080 - w) / 2, top, width: w, opacity: Math.min(1, a * 1.4) * (1 - o), transform: `translateY(${(1 - Math.min(a, 1)) * -60 + o * -40}px) scale(${mix(Math.min(a, 1.06), 0.7, 1) * mix(o, 1, 0.92)})`, filter: (a < 0.6 || o > 0) ? `blur(${Math.max(0, 0.6 - a) * 18 + o * 12}px)` : undefined, transformOrigin: "50% 0%" }}>
       {children}
     </div>
   );
@@ -435,8 +435,8 @@ export const AnfaalReel10: React.FC = () => {
       <At from={30.84} to={36.8}><PhonePop /></At>
       <At from={36.8} to={39.98}><ChartScene /></At>
       <Card from={40.05} to={47.85}><MoneyCard /></Card>
-      <Card from={47.94} to={53.05} top={1390}><BioCard /></Card>
-      <Card from={53.11} to={58.3} top={1420}><ChatCard /></Card>
+      <Card from={47.94} to={53.05}><BioCard /></Card>
+      <Card from={53.11} to={58.3}><ChatCard /></Card>
       <SyncedCaptions />
       <AbsoluteFill style={{ backgroundImage: `url(${staticFile("an10/grain.png")})`, backgroundSize: "380px 380px", mixBlendMode: "overlay", opacity: 0.05 }} />
       <OpenFlash />
