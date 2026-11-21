@@ -1,12 +1,12 @@
 # v4: VO lines placed on a 118 BPM beat grid; word timings from voiced segments.
 import soundfile as sf, numpy as np, json, re
 B = 60 / 118
-J = json.load(open("public/abet/vo2/lines.json"))
+J = json.load(open("public/abet/vo3/lines.json"))
 L = J["lines"]
 BEAT = [2, 6, 13, 22, 26, 30, 41, 45, 51, 60, 66, 70, 74, 84]  # start beat of each line
 out = []
 for i, text in enumerate(L):
-    a, sr = sf.read(f"public/abet/vo2/l{i:02d}.wav")
+    a, sr = sf.read(f"public/abet/vo3/l{i:02d}.wav")
     hop = int(sr * 0.01)
     e = np.array([np.abs(a[j:j + hop]).mean() for j in range(0, len(a) - hop, hop)])
     v = e > 0.006

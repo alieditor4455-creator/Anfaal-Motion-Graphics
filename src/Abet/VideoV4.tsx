@@ -6,6 +6,7 @@ import { DepositCard, DepositState, TxRow } from "./portal";
 import { BigButton, redGrad } from "./frames";
 import { MacBook, MacProps } from "./macbook";
 import { AccountsG, CalendarG, Glass, SocialG, WalletG } from "./glass";
+import { Logo3D } from "./Logo3D";
 
 // v4 — energetic SaaS cut on a 118 BPM grid. ~48 s.
 export const V4_FPS = 30;
@@ -89,11 +90,15 @@ const LogoFast: React.FC<{ t: number; t0: number; width: number }> = ({ t, t0, w
   />
 );
 const SceneLogo: React.FC<{ t: number }> = ({ t }) => {
-  const tag = k(t, 1.15, 1.85);
+  const tag = k(t, 1.35, 2.05);
+  const sw = k(t, 0, 1.75, EO); // swing-in
+  const drift = k(t, 1.75, 3.0, EIO);
   return (
-    <AbsoluteFill style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", transform: `scale(${mix(1, 1.05, k(t, 0, 2.9, EIO))})` }}>
-      <LogoFast t={t} t0={0.08} width={700} />
-      <div style={{ marginTop: 44, fontFamily: FONT, fontSize: 19, letterSpacing: `${mix(0.7, 0.42, tag)}em`, paddingLeft: "0.42em", color: "rgba(255,255,255,0.62)", opacity: tag }}>GLOBAL MARKETS · ONE PORTAL</div>
+    <AbsoluteFill>
+      <Logo3D width={1920} height={1080} y={40} rx={mix(28, 5, sw) - 2 * drift} ry={mix(-68, -9, sw) + 5 * drift} rz={mix(-6, 0, sw)} z={mix(-700, 0, sw) + 60 * drift} animals={k(t, 0.85, 1.55, EIO)} sweep={mix(0, 1, k(t, 0.5, 2.4, EIO))} rim={0.6 + 0.6 * k(t, 1.0, 1.8, EIO)} opacity={k(t, 0, 0.35, EIO)} />
+      {/* reflection falls off with distance from the floor */}
+      <div style={{ position: "absolute", left: 0, right: 0, top: 655, height: 360, background: "linear-gradient(180deg, rgba(9,12,21,0) 0%, rgba(9,12,21,0.75) 45%, rgba(9,12,21,1) 80%)" }} />
+      <div style={{ position: "absolute", top: 905, width: W, textAlign: "center", fontFamily: FONT, fontSize: 19, letterSpacing: `${mix(0.7, 0.42, tag)}em`, paddingLeft: "0.42em", color: "rgba(255,255,255,0.62)", opacity: tag }}>GLOBAL MARKETS · ONE PORTAL</div>
     </AbsoluteFill>
   );
 };
@@ -320,7 +325,7 @@ function cursor(t: number) {
   const vis = (a: number, b: number) => k(t, a, a + 0.25, EIO) * (1 - k(t, b, b + 0.25, EIO));
   const o = Math.min(1, vis(23.75, 25.0) + vis(28.8, 30.4) + vis(32.5, 33.4) + vis(34.5, 36.1));
   const rip = (c: number) => (t >= c && t <= c + 0.45 ? (t - c) / 0.45 : 0);
-  const press = rip(24.56) || rip(29.45) || rip(29.95) || rip(33.05) || rip(35.05) || rip(wt(11, 0) + 0.05);
+  const press = rip(wt(7, 4) + 0.05) || rip(29.45) || rip(29.95) || rip(33.05) || rip(35.05) || rip(wt(11, 0) + 0.05);
   return { x, y, o, press };
 }
 
@@ -358,7 +363,7 @@ const SceneDeposit: React.FC<{ t: number }> = ({ t }) => {
   const st = dep(t);
   const lift = k(t, 23.95, 24.75, SNAP);
   const morph = k(t, 24.95, 25.75, EIO);
-  const bp = k(t, 24.56, 24.64, EIO) * (1 - k(t, 24.66, 24.95, EIO));
+  const bp = k(t, wt(7, 4) + 0.05, wt(7, 4) + 0.13, EIO) * (1 - k(t, wt(7, 4) + 0.15, wt(7, 4) + 0.45, EIO));
   // button centre -> card centre (left side)
   const cardC = [CX + (900 * CARD_S) / 2, 540];
   const bx = mix(mix(820, W / 2, lift), cardC[0], morph);
@@ -452,12 +457,12 @@ const SUCCESS_C = toStage(450, 150 + 24 + 64);
 
 // ---------------- Scene 4: outro ----------------
 const SceneOutro: React.FC<{ t: number }> = ({ t }) => {
-  const cta = (i: number) => k(t, 45.2 + i * 0.12, 45.85 + i * 0.12, BACK);
+  const cta = (i: number) => k(t, 45.0 + i * 0.12, 45.65 + i * 0.12, BACK);
   return (
     <AbsoluteFill style={{ opacity: 1 - k(t, 47.25, 47.95, EIO) }}>
-      <div style={{ position: "absolute", top: 290, width: W, display: "flex", flexDirection: "column", alignItems: "center", transform: `scale(${mix(1, 1.03, k(t, 41.8, 48, EIO))})` }}>
-        <LogoFast t={t} t0={41.9} width={560} />
-        <div style={{ ...display(54, "#fff", 400), marginTop: 56 }}>
+      <Logo3D width={1920} height={1080} y={175} scale={0.72} reflect={0} rx={mix(-18, 3, k(t, 41.6, 43.4, EO))} ry={mix(58, 6, k(t, 41.6, 43.4, EO)) - 7 * k(t, 43.4, 48, EIO)} z={mix(-600, 0, k(t, 41.6, 43.4, EO))} animals={k(t, 42.4, 43.0, EIO)} sweep={k(t, 42.2, 44.0, EIO)} rim={1.1} opacity={k(t, 41.55, 41.9, EIO)} />
+      <div style={{ position: "absolute", top: 520, width: W, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ ...display(54, "#fff", 400) }}>
           <MaskWord t={t} at={wt(13, 2)}>Your </MaskWord>
           <MaskWord t={t} at={wt(13, 3)}>markets, </MaskWord>
           <MaskWord t={t} at={wt(13, 4)} style={redGrad}>simplified.</MaskWord>

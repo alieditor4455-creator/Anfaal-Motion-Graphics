@@ -23,6 +23,7 @@ import { AnfaalReel9, R9_FRAMES } from "./Anfaal9/Reel";
 import { AbetFrame, DesignSheet, SHEET_H, SHEET_W } from "./Abet/Sheet";
 import { ABET_FRAMES, AbetVideo } from "./Abet/Video";
 import { AbetScreen } from "./Abet/Screens";
+import { Test3D } from "./Abet/Test3D";
 import { AbetVideoV4, V4_FRAMES } from "./Abet/VideoV4";
 
 export const RemotionRoot: React.FC = () => (
@@ -49,6 +50,7 @@ export const RemotionRoot: React.FC = () => (
     <Still id="AnfaalReel2Cover" component={AnfaalReel2Cover} width={1080} height={1920} />
     <Composition id="AbetVideo" component={AbetVideo} durationInFrames={ABET_FRAMES} fps={30} width={1920} height={1080} />
     <Composition id="AbetVideoV4" component={AbetVideoV4} durationInFrames={V4_FRAMES} fps={30} width={1920} height={1080} />
+    <Still id="AbetTest3D" component={Test3D} width={1920} height={1080} defaultProps={{ rx: 8, ry: -22, animals: 1, sweep: 0.4 }} />
     <Still id="AbetScreen" component={AbetScreen} width={1600} height={1000} defaultProps={{ s: "dash" as const }} />
     <Still id="AbetFrame" component={AbetFrame} width={1920} height={1080} defaultProps={{ i: 1 }} />
     <Still id="AbetDesignSheet" component={DesignSheet} width={SHEET_W} height={SHEET_H} />

@@ -6,11 +6,12 @@ import fs from "fs";
 const [, , id, out, conc = "3"] = process.argv;
 const browserExecutable = fs.readdirSync("/opt/pw-browsers").filter((d) => d.startsWith("chromium_headless_shell")).map((d) => `/opt/pw-browsers/${d}/chrome-headless-shell-linux64/chrome-headless-shell`).filter((p) => fs.existsSync(p))[0];
 const serveUrl = await bundle({ entryPoint: "src/index.ts", publicDir: process.env.PUBLIC_DIR || undefined });
-const composition = await selectComposition({ serveUrl, id, browserExecutable });
+const chromiumOptions = { gl: process.env.GL || "swangle" };
+const composition = await selectComposition({ serveUrl, id, browserExecutable, chromiumOptions });
 let last = -10;
 const t0 = Date.now();
 await renderMedia({
-  serveUrl, composition, codec: "h264", crf: 16, muted: true, outputLocation: out, browserExecutable,
+  serveUrl, composition, codec: "h264", crf: 16, muted: true, outputLocation: out, browserExecutable, chromiumOptions, chromiumOptions,
   concurrency: Number(conc), frameRange: process.env.RANGE ? process.env.RANGE.split("-").map(Number) : undefined, logLevel: process.env.LOGLEVEL || "warn", timeoutInMilliseconds: Number(process.env.TMO || 180000), offthreadVideoCacheSizeInBytes: 1.5e9,
   onProgress: ({ progress }) => { const pc = Math.floor(progress * 100); if (pc >= last + 25) { last = pc; console.log(`render ${pc}% ${Math.round((Date.now() - t0) / 1000)}s`); } },
 });

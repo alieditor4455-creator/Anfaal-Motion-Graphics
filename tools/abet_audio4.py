@@ -184,7 +184,7 @@ def chime():
     return v / np.abs(v).max()
 sfx = [np.zeros(N), np.zeros(N)]
 CL = click()
-for c in (24.56, 29.45, 29.95, 33.05, 35.05, wt(11, 0) + 0.05):
+for c in (wt(7, 4) + 0.05, 29.45, 29.95, 33.05, 35.05, wt(11, 0) + 0.05):
     add(CL, c, 0.13, 0.5, sfx)
 for i in range(7):
     add(click(3200 + 200 * (i % 3), 0.03), 31.1 + i * (0.65 / 7), 0.07, 0.5, sfx)
@@ -196,7 +196,7 @@ sfx = np.stack([reverb(sfx[0], 1.2, 0.2), reverb(sfx[1], 1.2, 0.2)])
 # ---------- VO ----------
 vo = np.zeros(N)
 for i, Lr in enumerate(TM):
-    a, _ = sf.read(f"public/abet/aud2/l{i:02d}.wav")
+    a, _ = sf.read(f"public/abet/aud3/l{i:02d}.wav")
     s0 = int(Lr["start"] * SR)
     vo[s0:s0 + len(a)] += a[: N - s0]
 vo = vo / (np.abs(vo).max() + 1e-9) * 0.82
