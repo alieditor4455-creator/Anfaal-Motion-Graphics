@@ -111,7 +111,7 @@ const SceneLogo: React.FC<{ t: number }> = ({ t }) => {
   const push = mix(1, 1.035, k(t, 0, 5.0, EIO));
   const tag = k(t, 2.4, 3.4);
   return (
-    <AbsoluteFill style={zoomOut(t, 4.85, 5.85, 5, 960, 520)}>
+    <AbsoluteFill>
       <AbsoluteFill style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", transform: `scale(${push})` }}>
         <LogoReveal t={t} t0={0.35} width={700} />
         <div style={{ marginTop: 44, fontFamily: FONT, fontSize: 19, fontWeight: 400, letterSpacing: `${mix(0.7, 0.42, tag)}em`, paddingLeft: "0.42em", color: "rgba(255,255,255,0.62)", opacity: tag, filter: tag < 1 ? `blur(${(1 - tag) * 6}px)` : undefined }}>GLOBAL MARKETS · ONE PORTAL</div>
@@ -142,7 +142,7 @@ const SceneWhat: React.FC<{ t: number }> = ({ t }) => {
   const so = card(wt(2, 4), [-440, -40], -16, 2.1);
   const ca = card(wt(2, 8), [-440, 160], -14, 3.4);
   return (
-    <AbsoluteFill style={zoomOut(t, 16.3, 17.4, 3.6, S2_SCREEN[0], S2_SCREEN[1])}>
+    <AbsoluteFill>
       <div style={{ position: "absolute", width: W, top: 78, textAlign: "center" }}>
         <div style={head(58, "#fff")}>
           {["One ", "clean ", "portal"].map((x, i) => <RiseWord key={i} t={t} at={wt(1, i)}>{x}</RiseWord>)}
@@ -173,9 +173,9 @@ const CARD3: [number, number] = [ROW_X + 2 * (CW + CGAP) + CW / 2, 520 + CH / 2]
 const SceneHow: React.FC<{ t: number }> = ({ t }) => {
   const line = STEP_AT.reduce((acc, s, i) => (i === 0 ? acc : acc + k(t, s - 0.1, s + 0.7, EIO)), 0) / 3;
   return (
-    <AbsoluteFill style={merge(zoomIn(t, 16.95, 18.1), zoomOut(t, 29.55, 30.6, 3.4, CARD3[0], CARD3[1]))}>
+    <AbsoluteFill>
       <div style={{ position: "absolute", top: 150, width: W, display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ opacity: k(t, 17.25, 18.2, EIO), transform: `translateY(${(1 - k(t, 17.25, 18.2)) * 12}px)` }}><Eyebrow>HOW IT WORKS</Eyebrow></div>
+        <div style={{ opacity: k(t, 16.95, 17.9, EIO), transform: `translateY(${(1 - k(t, 16.95, 17.9)) * 12}px)` }}><Eyebrow>HOW IT WORKS</Eyebrow></div>
         <div style={{ ...head(78, C.ink), marginTop: 30 }}>
           <RiseWord t={t} at={wt(3, 3)} style={{ color: C.red }}>Four </RiseWord>
           <RiseWord t={t} at={wt(3, 4)}>simple </RiseWord>
@@ -386,9 +386,9 @@ const SceneOutro: React.FC<{ t: number }> = ({ t }) => {
   const cta = (i: number) => k(t, 67.2 + i * 0.15, 68.1 + i * 0.15, BACK);
   const fade = k(t, 70.1, 70.95, EIO);
   return (
-    <AbsoluteFill style={{ ...zoomIn(t, 62.75, 63.9), opacity: (zoomIn(t, 62.75, 63.9).opacity as number ?? 1) * (1 - fade) }}>
+    <AbsoluteFill style={{ opacity: 1 - fade }}>
       <div style={{ position: "absolute", top: 300, width: W, display: "flex", flexDirection: "column", alignItems: "center", transform: `scale(${mix(1, 1.025, k(t, 63, 70.8, EIO))})` }}>
-        <LogoReveal t={t} t0={63.25} width={560} />
+        <LogoReveal t={t} t0={62.8} width={560} />
         <div style={{ ...head(50, "#fff"), marginTop: 56 }}>
           <RiseWord t={t} at={wt(14, 2)}>Your </RiseWord>
           <RiseWord t={t} at={wt(14, 3)}>markets, </RiseWord>
@@ -404,41 +404,72 @@ const SceneOutro: React.FC<{ t: number }> = ({ t }) => {
   );
 };
 
+// ---------------- Transition: frosted-glass panel wipe ----------------
+// A large glass panel glides right -> left. The scene swaps at `tm`, the moment the panel fully covers the frame.
+const TR: { tm: number; from: number; to: number }[] = [
+  { tm: 5.6, from: 0, to: 0 },
+  { tm: 17.0, from: 0, to: 1 },
+  { tm: 30.2, from: 1, to: 1 },
+  { tm: 62.6, from: 1, to: 0 },
+];
+const WIPE = 1.3;
+const GlassWipe: React.FC<{ t: number }> = ({ t }) => (
+  <>
+    {TR.map((tr) => {
+      const a = tr.tm - WIPE / 2;
+      const b = tr.tm + WIPE / 2;
+      if (t < a || t > b) return null;
+      const p = k(t, a, b, EIO);
+      const x = mix(1980, -2380, p);
+      const L = mix(tr.from, tr.to, k(t, tr.tm - 0.2, tr.tm + 0.2, EIO)); // 0 dark glass, 1 light glass
+      const c = (d: number, l: number) => Math.round(mix(d, l, L));
+      return (
+        <div key={tr.tm} style={{ position: "absolute", left: 0, top: -70, width: 2400, height: 1220, borderRadius: 72, transform: `translate3d(${x}px, 0, 0)`, willChange: "transform", backdropFilter: "blur(38px) saturate(150%)", WebkitBackdropFilter: "blur(38px) saturate(150%)", background: `linear-gradient(100deg, rgba(${c(40, 255)},${c(48, 255)},${c(66, 255)},${mix(0.5, 0.62, L)}) 0%, rgba(${c(16, 246)},${c(21, 247)},${c(34, 250)},${mix(0.42, 0.5, L)}) 100%)`, boxShadow: `inset 1.5px 0 0 rgba(255,255,255,${mix(0.35, 0.9, L)}), inset 0 1px 0 rgba(255,255,255,${mix(0.25, 0.9, L)}), -40px 0 90px rgba(0,0,0,${mix(0.35, 0.12, L)})`, overflow: "hidden", zIndex: 60 }}>
+          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 260, background: `linear-gradient(90deg, rgba(255,255,255,${mix(0.16, 0.5, L)}) 0%, rgba(255,255,255,0) 100%)` }} />
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1.2px)", backgroundSize: "6px 6px", opacity: 0.5 }} />
+        </div>
+      );
+    })}
+  </>
+);
+// scenes drift in the wipe's direction for depth: outgoing eases left, incoming settles from the right
+const slide = (t: number, tin: number | null, tout: number | null): React.CSSProperties => {
+  let x = 0;
+  if (tin !== null) x += 110 * (1 - k(t, tin - 0.25, tin + 0.95, EO));
+  if (tout !== null) x -= 90 * k(t, tout - 0.65, tout + 0.05, Easing.bezier(0.5, 0, 0.9, 0.5));
+  return x ? { transform: `translate3d(${x}px, 0, 0)` } : {};
+};
+
 // ---------------- Root ----------------
 export const AbetVideo: React.FC = () => {
   const [h] = useState(() => delayRender("fonts"));
   useEffect(() => { let done = false; const fin = () => { if (!done) { done = true; continueRender(h); } }; Promise.race([fontsLoaded.then(() => document.fonts.ready), new Promise((r) => setTimeout(r, 6000))]).then(fin, fin); }, [h]);
   const f = useCurrentFrame();
   const t = f / ABET_FPS;
-  const lightIn = k(t, 16.85, 17.4, EIO);
-  const darkIn = k(t, 62.5, 63.15, EIO);
   return (
     <AbsoluteFill style={{ background: C.navy, fontFamily: FONT }}>
-      {t < 17.45 && (
+      {t < 17.0 && (
         <AbsoluteFill>
-          <BgDark t={f} glow={0.35 + 0.65 * k(t, 0, 1.6, EIO)} by={t < 6 ? 520 : 620} />
-          {t < 6 && <SceneLogo t={t} />}
-          {t > 5.2 && <AbsoluteFill style={zoomIn(t, 5.25, 6.4)}><SceneWhat t={t} /></AbsoluteFill>}
+          <BgDark t={f} glow={0.35 + 0.65 * k(t, 0, 1.6, EIO)} by={t < 5.6 ? 520 : 620} />
+          {t < 5.6 && <AbsoluteFill style={slide(t, null, 5.6)}><SceneLogo t={t} /></AbsoluteFill>}
+          {t >= 5.6 && <AbsoluteFill style={slide(t, 5.6, 17.0)}><SceneWhat t={t} /></AbsoluteFill>}
         </AbsoluteFill>
       )}
-      {t > 16.8 && t < 63.25 && (
-        <AbsoluteFill style={{ opacity: lightIn }}>
+      {t >= 17.0 && t < 62.6 && (
+        <AbsoluteFill>
           <BgLight t={f} />
-          {t < 30.7 && <SceneHow t={t} />}
-          {t > 30.05 && (
-            <AbsoluteFill style={merge(zoomIn(t, 30.1, 31.3), zoomOut(t, 62.1, 63.2, 3.2, 820, 520))}>
-              <SceneDeposit t={t} />
-            </AbsoluteFill>
-          )}
+          {t < 30.2 && <AbsoluteFill style={slide(t, 17.0, 30.2)}><SceneHow t={t} /></AbsoluteFill>}
+          {t >= 30.2 && <AbsoluteFill style={slide(t, 30.2, 62.6)}><SceneDeposit t={t} /></AbsoluteFill>}
           <Badges t={t} />
         </AbsoluteFill>
       )}
-      {t > 62.45 && (
-        <AbsoluteFill style={{ opacity: darkIn }}>
+      {t >= 62.6 && (
+        <AbsoluteFill>
           <BgDark t={f} glow={1} by={520} />
-          {t > 62.7 && <SceneOutro t={t} />}
+          <AbsoluteFill style={slide(t, 62.6, null)}><SceneOutro t={t} /></AbsoluteFill>
         </AbsoluteFill>
       )}
+      <GlassWipe t={t} />
       <Captions t={t} />
     </AbsoluteFill>
   );

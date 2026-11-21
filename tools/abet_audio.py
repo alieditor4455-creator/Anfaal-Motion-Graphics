@@ -209,54 +209,40 @@ def shimmer(d=1.8):
 W1, W2, W3 = whoosh(0.9), whoosh(1.2, 200, 2200), whoosh(0.6, 600, 5000)
 CL, PO, PO2 = click(), pop(), pop(1200, 760, 0.1)
 
-# intro
-put(riser(1.25), 0.1, 0.10)
-put(impact(), 1.32, 0.30)
-put(shimmer(), 2.2, 0.06, 0.7)
-put(riser(0.9), 4.3, 0.07)
-put(W2, 4.95, 0.12)
-# what is ABET
-put(W1, 5.4, 0.07, 0.45)
+# intro (logo accents only)
+put(impact(), 1.32, 0.22)
+put(shimmer(), 2.2, 0.05, 0.7)
+# one soft, low air swish per scene change (glass wipe), nothing else whooshes
+AIR = lowpass(whoosh(1.1, 120, 1400), 1800)
+AIR /= np.abs(AIR).max()
+for tm in (5.6, 17.0, 30.2, 62.6):
+    put(AIR, tm - 0.55, 0.045, 0.5)
+# what is ABET: feature cards
 for a, p in ((wt(2, 1), 0.3), (wt(2, 3), 0.35), (wt(2, 4), 0.7), (wt(2, 8), 0.75)):
-    put(PO, a, 0.08, p)
-put(riser(1.1), 16.3, 0.09)
-put(W2, 16.9, 0.10)
-# how it works
-put(W3, 17.7, 0.06)
-put(W1, 20.8, 0.08)
-for s in (TM[4]["start"], TM[5]["start"], TM[6]["start"], TM[7]["start"]):
-    put(PO2, s, 0.08)
-put(riser(0.8), 29.1, 0.07)
-put(W2, 29.7, 0.11)
-# deposit
-put(W3, 34.75, 0.09)
-put(CL, 36.52, 0.16)
-put(W1, 37.15, 0.10)
+    put(PO, a, 0.06, p)
+# how it works: step cards
+for s_ in (TM[4]["start"], TM[5]["start"], TM[6]["start"], TM[7]["start"]):
+    put(PO2, s_, 0.07)
+# deposit: UI clicks, typing, ticks, chime
+put(CL, 36.52, 0.15)
 for i in (5, 7, 9):
-    put(PO2, wt(10, i), 0.05, 0.4 + i * 0.03)
-put(CL, 42.78, 0.15)
-put(PO, 42.85, 0.06)
+    put(PO2, wt(10, i), 0.045, 0.4 + i * 0.03)
+put(CL, 42.78, 0.14)
 for c in (43.55, 48.75, 54.35):
-    put(CL, c, 0.14)
-for c in (43.75, 49.05, 54.65):
-    put(W3, c, 0.05)
+    put(CL, c, 0.13)
 for i in range(7):
-    put(click(3200 + 200 * (i % 3), 0.03), 45.35 + i * (0.8 / 7), 0.09)
-put(CL, 46.3, 0.12)
+    put(click(3200 + 200 * (i % 3), 0.03), 45.35 + i * (0.8 / 7), 0.08)
+put(CL, 46.3, 0.11)
 for i in range(4):
-    put(PO2, wt(12, 6) + i * 0.32, 0.06)
-put(CL, wt(13, 2) + 0.05, 0.16)
-put(chime(), 57.1, 0.13)
-put(W1, 58.7, 0.08)
-put(W3, 59.75, 0.07, 0.7)
-put(PO, 61.35, 0.08, 0.7)
+    put(PO2, wt(12, 6) + i * 0.32, 0.055)
+put(CL, wt(13, 2) + 0.05, 0.15)
+put(chime(), 57.1, 0.12)
+put(PO, 61.35, 0.07, 0.7)
 # outro
-put(riser(0.9), 61.4, 0.07)
-put(W2, 62.2, 0.13)
-put(impact(), 64.25, 0.26)
-put(shimmer(), 65.1, 0.06, 0.3)
-put(PO2, 67.2, 0.06)
-put(PO2, 67.34, 0.06)
+put(impact(), 63.75, 0.2)
+put(shimmer(), 64.6, 0.05, 0.3)
+put(PO2, 67.2, 0.05)
+put(PO2, 67.35, 0.05)
 
 sfx = np.stack([reverb(sfx[0], 1.6, 0.25), reverb(sfx[1], 1.6, 0.25)])
 
