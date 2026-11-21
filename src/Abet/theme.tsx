@@ -37,10 +37,10 @@ export { fontsLoaded };
 // ---------- Motion ----------
 export const FPS = 30;
 export const s = (sec: number) => Math.round(sec * FPS);
-export const EO = Easing.bezier(0.16, 1, 0.3, 1); // expo-out: arrivals
-export const EIO = Easing.bezier(0.65, 0, 0.35, 1); // ease-in-out: camera / morphs
+export const EO = Easing.bezier(0.3, 0, 0.12, 1); // gentle start, long glide to rest (no velocity pop)
+export const EIO = Easing.bezier(0.6, 0, 0.3, 1); // ease-in-out: camera / morphs
 export const EI = Easing.bezier(0.7, 0, 0.84, 0); // expo-in: exits
-export const BACK = Easing.bezier(0.34, 1.45, 0.64, 1); // soft overshoot for pops
+export const BACK = Easing.bezier(0.3, 1.25, 0.5, 1); // very soft overshoot for pops
 
 export const tw = (f: number, a: number, b: number, ease = EO, from = 0, to = 1) =>
   interpolate(f, [a, b], [from, to], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease });
@@ -99,89 +99,67 @@ export const Icon: React.FC<{ name: keyof typeof ICONS | string; size?: number; 
   );
 };
 
-// ---------- ABET logo (extracted from brand footage: white letters + red bull/bear layers) ----------
-// Native layer size 1040x290. Letter columns measured from the alpha.
+// ---------- ABET logo (from brand footage): solid letters + separate bull / bear layers ----------
 const SEGS: [number, number][] = [[18, 304], [306, 553], [556, 778], [778, 1022]];
 export const LOGO_W = 1040;
 export const LOGO_H = 290;
 
 export type LogoState = {
-  letters?: number[]; // 0..1 per letter (rise from mask)
-  bull?: number; // 0..1 bull charges in from the left inside the A
-  bear?: number; // 0..1 bear rises inside the T
-  blur?: number;
+  letters?: number[]; // 0..1 per letter: fade + de-blur + small rise (no masks, no holes)
+  bull?: number; // 0..1 wipe left->right
+  bear?: number; // 0..1 wipe bottom->top
+  sweep?: number; // 0..1 light sweep position (0 = off left, 1 = off right)
+  glow?: number; // 0..1 soft bloom
 };
+const maskStyle = (src: string, w: number, h: number, bg: string): React.CSSProperties => ({
+  position: "absolute", left: 0, top: 0, width: w, height: h, background: bg,
+  WebkitMaskImage: `url(${staticFile(src)})`, WebkitMaskSize: "100% 100%", maskImage: `url(${staticFile(src)})`, maskSize: "100% 100%",
+});
 export const AbetLogo: React.FC<{ width: number; ink?: string; state?: LogoState; style?: React.CSSProperties }> = ({ width, ink = "#fff", state = {}, style }) => {
   const k = width / LOGO_W;
   const H = LOGO_H * k;
   const L = state.letters ?? [1, 1, 1, 1];
   const bull = state.bull ?? 1;
   const bear = state.bear ?? 1;
-  const layer = (src: string, bg: string): React.CSSProperties => ({
-    position: "absolute", top: 0, width, height: H, background: bg,
-    WebkitMaskImage: `url(${staticFile(src)})`, WebkitMaskSize: "100% 100%", maskImage: `url(${staticFile(src)})`, maskSize: "100% 100%",
-  });
+  const sweep = state.sweep ?? -1;
+  const glow = state.glow ?? 0;
   return (
-    <div style={{ position: "relative", width, height: H, filter: state.blur ? `blur(${state.blur}px)` : undefined, ...style }}>
+    <div style={{ position: "relative", width, height: H, ...style }}>
+      {glow > 0 && <div style={{ ...maskStyle("abet/logo_solid.png", width, H, `rgba(226,70,76,${0.55 * glow})`), filter: `blur(${18 * k + 10}px)`, transform: "scale(1.02)" }} />}
       {SEGS.map(([a, b], i) => {
         const p = L[i];
+        if (p <= 0) return null;
         return (
-          <div key={i} style={{ position: "absolute", left: a * k, top: 0, width: (b - a) * k, height: H, overflow: "hidden" }}>
-            <div style={{ ...layer("abet/logo_white.png", ink), left: -a * k, transform: `translateY(${(1 - p) * 105}%)`, filter: p < 1 ? `blur(${(1 - p) * 6}px)` : undefined }} />
-          </div>
+          <div key={i} style={{ ...maskStyle("abet/logo_solid.png", width, H, ink), clipPath: `inset(-20% ${(LOGO_W - b) * k}px -20% ${a * k}px)`, opacity: p, transform: `translateY(${(1 - p) * 16 * k * 3}px) scale(${1 + (1 - p) * 0.04})`, filter: p < 1 ? `blur(${(1 - p) * 10}px)` : undefined }} />
         );
       })}
-      {/* bull: clipped to A */}
-      <div style={{ position: "absolute", left: SEGS[0][0] * k, top: 0, width: (SEGS[0][1] - SEGS[0][0]) * k, height: H, overflow: "hidden" }}>
-        <div style={{ ...layer("abet/logo_red.png", C.red), left: -SEGS[0][0] * k, transform: `translateX(${-(1 - bull) * 110}%)`, opacity: bull > 0 ? 1 : 0 }} />
-      </div>
-      {/* bear: clipped to T */}
-      <div style={{ position: "absolute", left: SEGS[3][0] * k, top: 0, width: (SEGS[3][1] - SEGS[3][0]) * k, height: H, overflow: "hidden" }}>
-        <div style={{ ...layer("abet/logo_red.png", C.red), left: -SEGS[3][0] * k, transform: `translateY(${(1 - bear) * 105}%)`, opacity: bear > 0 ? 1 : 0 }} />
-      </div>
+      {bull > 0 && <div style={{ ...maskStyle("abet/logo_bull.png", width, H, C.red), clipPath: `inset(0 ${(1 - bull) * 100}% 0 0)` }} />}
+      {bear > 0 && <div style={{ ...maskStyle("abet/logo_bear.png", width, H, C.red), clipPath: `inset(${(1 - bear) * 100}% 0 0 0)` }} />}
+      {sweep > -1 && sweep < 1.2 && (
+        <div style={{ ...maskStyle("abet/logo_solid.png", width, H, "linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 38%, rgba(255,236,236,0.95) 50%, rgba(255,255,255,0) 62%, rgba(255,255,255,0) 100%)"), backgroundSize: "300% 100%", backgroundPosition: `${100 - sweep * 100}% 0`, mixBlendMode: "screen" }} />
+      )}
     </div>
   );
 };
 
-// ---------- Backgrounds ----------
+// ---------- Backgrounds (clean: one soft bloom, vignette, fine grain) ----------
 const GRAIN = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")`;
 
-// Soft misty ridge shapes (like an out-of-focus landscape) for the bottom of the frame
-const Haze: React.FC<{ t: number; colors: string[]; opacity?: number; top?: number }> = ({ t, colors, opacity = 1, top = 640 }) => (
-  <svg width={1920} height={1080} viewBox="0 0 1920 1080" style={{ position: "absolute", left: 0, top: 0, opacity }}>
-    <defs>
-      <filter id="hz" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="38" /></filter>
-    </defs>
-    <g filter="url(#hz)">
-      {colors.map((c, i) => {
-        const o = (t / (140 + i * 40)) * (i % 2 ? -1 : 1);
-        const y0 = top + i * 70;
-        const pts = Array.from({ length: 9 }, (_, k) => {
-          const x = -200 + k * 290;
-          const y = y0 + Math.sin(k * 1.7 + i * 2.1 + o) * (60 - i * 8) + Math.cos(k * 0.9 + i) * 30;
-          return `${x},${y}`;
-        });
-        return <polygon key={i} points={`-300,1300 ${pts.join(" ")} 2300,1300`} fill={c} />;
-      })}
-    </g>
-  </svg>
-);
-
-export const BgDark: React.FC<{ t?: number; glow?: number }> = ({ t = 0, glow = 1 }) => (
-  <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 70% 60% at 50% 38%, #141c2e 0%, ${C.navy} 70%)`, overflow: "hidden" }}>
-    <div style={{ position: "absolute", width: 1500, height: 900, left: 210 + Math.sin(t / 100) * 40, top: -520, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(120,140,200,0.16) 0%, rgba(120,140,200,0) 65%)" }} />
-    <Haze t={t} top={760} opacity={glow} colors={["rgba(120,22,32,0.55)", "rgba(179,36,42,0.38)", "rgba(60,14,24,0.75)"]} />
-    <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, opacity: 0.06, mixBlendMode: "overlay" }} />
-    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 85% 85% at 50% 45%, transparent 55%, rgba(0,0,0,0.5) 100%)" }} />
+export const BgDark: React.FC<{ t?: number; glow?: number; bx?: number; by?: number }> = ({ t = 0, glow = 1, bx = 960, by = 600 }) => (
+  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #0B1120 0%, #090D17 60%, #07090F 100%)", overflow: "hidden" }}>
+    <div style={{ position: "absolute", left: bx - 900, top: by - 620, width: 1800, height: 1240, borderRadius: "50%", background: `radial-gradient(ellipse at center, rgba(179,36,42,${0.26 * glow}) 0%, rgba(122,10,10,${0.12 * glow}) 35%, rgba(122,10,10,0) 68%)`, transform: `scale(${1 + 0.03 * Math.sin(t / 70)})` }} />
+    <div style={{ position: "absolute", left: 360, top: -700, width: 1200, height: 1000, borderRadius: "50%", background: "radial-gradient(ellipse at center, rgba(120,140,200,0.10) 0%, rgba(120,140,200,0) 65%)" }} />
+    <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, opacity: 0.05, mixBlendMode: "overlay" }} />
+    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%)" }} />
   </div>
 );
 
 export const BgLight: React.FC<{ t?: number }> = ({ t = 0 }) => (
-  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #FFFFFF 0%, #FBF8F8 55%, #F8EFEF 100%)", overflow: "hidden" }}>
-    <div style={{ position: "absolute", width: 1100, height: 600, left: 1250, top: -330, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(255,214,200,0.55) 0%, rgba(255,214,200,0) 65%)" }} />
-    <div style={{ position: "absolute", width: 900, height: 500, left: -300, top: -250, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(236,222,252,0.55) 0%, rgba(236,222,252,0) 65%)" }} />
-    <Haze t={t} top={800} colors={["rgba(246,190,196,0.75)", "rgba(252,214,200,0.8)", "rgba(240,170,180,0.65)"]} />
-    <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, opacity: 0.07, mixBlendMode: "soft-light" }} />
+  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #FFFFFF 0%, #F7F8FA 60%, #F1F2F5 100%)", overflow: "hidden" }}>
+    <div style={{ position: "absolute", left: 160, top: 520, width: 1600, height: 900, borderRadius: "50%", background: "radial-gradient(ellipse at center, rgba(246,190,196,0.45) 0%, rgba(246,190,196,0) 62%)", transform: `scale(${1 + 0.03 * Math.sin(t / 80)})` }} />
+    <div style={{ position: "absolute", left: 1150, top: -420, width: 1100, height: 800, borderRadius: "50%", background: "radial-gradient(ellipse at center, rgba(226,214,250,0.35) 0%, rgba(226,214,250,0) 65%)" }} />
+    <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, opacity: 0.06, mixBlendMode: "soft-light" }} />
+    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 95% 95% at 50% 45%, transparent 60%, rgba(17,24,39,0.06) 100%)" }} />
   </div>
 );
 

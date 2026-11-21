@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { AbsoluteFill, Easing, continueRender, delayRender, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, Img, continueRender, delayRender, staticFile, useCurrentFrame } from "remotion";
 import TM from "./timing.json";
 import { AbetLogo, BACK, BgDark, BgLight, C, Caption, Cursor, EIO, EO, Eyebrow, FONT, Icon, StepBadge, fontsLoaded, mix, tw } from "./theme";
 import { Dashboard, DepositCard, DepositPage, DepositState, TxRow } from "./portal";
-import { BigButton, CalendarFloat, CW, CGAP, H, LogoLockup, MacPortal, ROW_X, SocialFloat, StepCard, W, WalletFloat, glass, redGrad } from "./frames";
+import { BigButton, CW, CGAP, CH, ROW_X, StepCard, W, redGrad } from "./frames";
+import { MacBook, MacProps } from "./macbook";
+import { AccountsG, CalendarG, Glass, SocialG, WalletG } from "./glass";
 
 export const ABET_FPS = 30;
 export const ABET_DUR = 71;
@@ -64,43 +66,86 @@ const Captions: React.FC<{ t: number }> = ({ t }) => (
   </>
 );
 
-// ---------------- Scene 1: logo intro ----------------
+// ---------------- transitions: zoom-through ----------------
+const ACC = Easing.bezier(0.55, 0, 0.9, 0.35); // accelerate into the camera
+const zoomOut = (t: number, a: number, b: number, S: number, ox: number, oy: number): React.CSSProperties => {
+  const p = k(t, a, b, ACC);
+  if (p <= 0) return {};
+  return { transform: `scale(${1 + p * S})`, transformOrigin: `${ox}px ${oy}px`, filter: `blur(${Math.pow(p, 1.4) * 22}px)`, opacity: 1 - k(t, a + (b - a) * 0.5, b, EIO) };
+};
+const zoomIn = (t: number, a: number, b: number): React.CSSProperties => {
+  const p = k(t, a, b, EO);
+  if (p >= 1) return {};
+  return { transform: `scale(${mix(1.16, 1, p)})`, transformOrigin: "960px 540px", filter: `blur(${(1 - p) * 14}px)`, opacity: k(t, a, a + (b - a) * 0.45, EIO) };
+};
+const merge = (x: React.CSSProperties, y: React.CSSProperties): React.CSSProperties => ({
+  ...x, ...y,
+  transform: [x.transform, y.transform].filter(Boolean).join(" ") || undefined,
+  filter: [x.filter, y.filter].filter(Boolean).join(" ") || undefined,
+  opacity: (x.opacity === undefined ? 1 : Number(x.opacity)) * (y.opacity === undefined ? 1 : Number(y.opacity)),
+});
+
+// laptop with a pre-rendered screen texture (crisp, no shimmer)
+const MacImg: React.FC<Omit<MacProps, "children"> & { src: string; src2?: string; mixT?: number }> = ({ src, src2, mixT = 0, ...mac }) => (
+  <MacBook {...mac}>
+    <Img src={staticFile(`abet/screens/${src}.png`)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+    {src2 && mixT > 0 && <Img src={staticFile(`abet/screens/${src2}.png`)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: mixT }} />}
+  </MacBook>
+);
+
+// ---------------- Scene 1: logo intro (light sweep reveal) ----------------
+const LogoReveal: React.FC<{ t: number; t0: number; width: number }> = ({ t, t0, width }) => (
+  <AbetLogo
+    width={width}
+    state={{
+      letters: [0, 1, 2, 3].map((i) => k(t, t0 + i * 0.09, t0 + 1.0 + i * 0.09)),
+      bull: k(t, t0 + 0.9, t0 + 1.7, EIO),
+      bear: k(t, t0 + 1.05, t0 + 1.85, EIO),
+      sweep: mix(-0.25, 1.25, k(t, t0 + 1.75, t0 + 2.95, EIO)),
+      glow: 0.7 * k(t, t0 + 1.4, t0 + 2.4, EIO) * (1 - 0.6 * k(t, t0 + 2.9, t0 + 4.2, EIO)),
+    }}
+  />
+);
+
 const SceneLogo: React.FC<{ t: number }> = ({ t }) => {
-  const out = k(t, 4.95, 5.9, EIO);
-  const push = mix(0.965, 1.02, k(t, 0, 5.6, EIO));
+  const push = mix(1, 1.035, k(t, 0, 5.0, EIO));
+  const tag = k(t, 2.4, 3.4);
   return (
-    <AbsoluteFill style={{ display: "grid", placeItems: "center", opacity: 1 - out, transform: `translateY(${-50 * out}px) scale(${push - 0.05 * out})`, filter: out > 0 ? `blur(${out * 12}px)` : undefined }}>
-      <LogoLockup
-        width={760}
-        logo={{ letters: [0, 1, 2, 3].map((i) => k(t, 0.45 + i * 0.12, 1.45 + i * 0.12)), bull: k(t, 1.3, 2.25, EIO), bear: k(t, 1.5, 2.45, EIO) }}
-        line={k(t, 0.9, 2.5, EIO)}
-        tag={k(t, 2.2, 3.3)}
-      />
+    <AbsoluteFill style={zoomOut(t, 4.85, 5.85, 5, 960, 520)}>
+      <AbsoluteFill style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", transform: `scale(${push})` }}>
+        <LogoReveal t={t} t0={0.35} width={700} />
+        <div style={{ marginTop: 44, fontFamily: FONT, fontSize: 19, fontWeight: 400, letterSpacing: `${mix(0.7, 0.42, tag)}em`, paddingLeft: "0.42em", color: "rgba(255,255,255,0.62)", opacity: tag, filter: tag < 1 ? `blur(${(1 - tag) * 6}px)` : undefined }}>GLOBAL MARKETS · ONE PORTAL</div>
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };
 
 // ---------------- Scene 2: what is ABET ----------------
-const S2_FOCUS: [number, number] = [960, 500];
+const S2_SCREEN: [number, number] = [960, 515];
 const SceneWhat: React.FC<{ t: number }> = ({ t }) => {
-  const up = k(t, 8.7, 9.9, EIO); // headline travels to top
-  const rise = k(t, 8.9, 10.6, EO);
-  const lid = k(t, 9.1, 10.9, EIO);
-  const drift = k(t, 10.6, 16.6, EIO);
-  const zoom = k(t, 16.35, 17.45, Easing.bezier(0.55, 0, 0.75, 0.2)); // accelerate into the screen
-  const one = k(t, wt(2, 10) - 0.1, wt(2, 10) + 1.0, EIO); // "All in one place" -> cards gather
-  const floatsOut = k(t, 16.2, 16.75, EIO);
-  const bob = (ph: number) => Math.sin(t * 1.1 + ph) * 6;
-  const card = (at: number, from: [number, number]) => {
-    const p = k(t, at - 0.05, at + 0.95);
-    return { opacity: p * (1 - floatsOut), transform: `translate(${(1 - p) * from[0] + floatsOut * from[0] * -0.6}px, ${(1 - p) * from[1] + bob(at)}px) scale(${mix(0.7, 1, p) * (1 - 0.06 * one) + floatsOut * 0.25})`, filter: p < 1 ? `blur(${(1 - p) * 10}px)` : undefined };
+  const rise = k(t, 5.3, 8.2, EIO);
+  const drift = k(t, 8.7, 16.4, EIO);
+  const one = k(t, wt(2, 10) - 0.1, wt(2, 10) + 1.1, EIO);
+  // each card: glides out from the screen into place, then breathes
+  const card = (at: number, from: [number, number], tilt: number, ph: number): { style: React.CSSProperties; rx: number; ry: number; sheen: number } => {
+    const p = k(t, at - 0.1, at + 1.1);
+    const g = one * 0.1;
+    return {
+      style: { opacity: k(t, at - 0.1, at + 0.5, EIO), transform: `translate(${(1 - p) * from[0] - from[0] * g * 0}px, ${(1 - p) * from[1] + Math.sin(t * 0.9 + ph) * 5}px) scale(${mix(0.82, 1, p) * (1 - g * 0.3)})`, filter: p < 1 ? `blur(${(1 - p) * 10}px)` : undefined },
+      rx: mix(14, 4, p) + Math.sin(t * 0.6 + ph) * 1.2,
+      ry: tilt * mix(1.8, 1, p) + Math.cos(t * 0.5 + ph) * 1.5,
+      sheen: mix(-0.3, 1.2, k(t, at + 0.2, at + 1.6, EIO)),
+    };
   };
+  const w = card(wt(2, 1), [520, 80], 16, 0);
+  const a = card(wt(2, 3), [420, -140], 14, 1.3);
+  const so = card(wt(2, 4), [-440, -40], -16, 2.1);
+  const ca = card(wt(2, 8), [-440, 160], -14, 3.4);
   return (
-    <AbsoluteFill style={{ transform: `scale(${1 + zoom * 3.4})`, transformOrigin: `${S2_FOCUS[0]}px ${S2_FOCUS[1]}px`, filter: `blur(${Math.max(0, zoom - 0.3) * 10}px)` }}>
-      {/* headline */}
-      <div style={{ position: "absolute", width: W, top: mix(385, 74, up), textAlign: "center", transform: `scale(${mix(1.22, 1, up)})`, opacity: 1 - floatsOut }}>
+    <AbsoluteFill style={zoomOut(t, 16.3, 17.4, 3.6, S2_SCREEN[0], S2_SCREEN[1])}>
+      <div style={{ position: "absolute", width: W, top: 78, textAlign: "center" }}>
         <div style={head(58, "#fff")}>
-          {["One ", "clean ", "portal"].map((w, i) => <RiseWord key={i} t={t} at={wt(1, i)}>{w}</RiseWord>)}
+          {["One ", "clean ", "portal"].map((x, i) => <RiseWord key={i} t={t} at={wt(1, i)}>{x}</RiseWord>)}
         </div>
         <div style={{ ...head(58, "rgba(255,255,255,0.5)"), marginTop: 4 }}>
           <RiseWord t={t} at={wt(1, 3)}>for </RiseWord>
@@ -109,56 +154,51 @@ const SceneWhat: React.FC<{ t: number }> = ({ t }) => {
           <RiseWord t={t} at={wt(1, 6)} style={redGrad}>markets.</RiseWord>
         </div>
       </div>
-      {/* laptop */}
       {rise > 0 && (
-        <div style={{ position: "absolute", inset: 0, opacity: k(t, 8.9, 9.5, EIO) }}>
-          <MacPortal x={W / 2} y={mix(1180, 740, rise) - 10 * drift} scale={mix(0.38, 0.42, rise) + 0.02 * drift} rx={mix(-38, -14, rise)} ry={mix(-46, -14, rise) + 4 * drift} lid={mix(-62, 16, lid)} rim={0.8}>
-            <Dashboard />
-          </MacPortal>
+        <div style={{ position: "absolute", inset: 0, opacity: k(t, 5.3, 6.3, EIO) }}>
+          <MacImg src="dash" x={W / 2} y={mix(980, 745, rise) - 6 * drift} scale={0.42 + 0.022 * drift} rx={mix(-24, -14, rise)} ry={mix(-30, -14, rise) + 5 * drift} lid={16} rim={0.7 + 0.5 * one} />
         </div>
       )}
-      {/* floating feature cards: they arrive from the screen */}
-      <CalendarFloat blur={3} style={{ left: 1430, top: 300, ...card(wt(2, 8), [-420, 160]), transform: `${card(wt(2, 8), [-420, 160]).transform} scale(0.86)` }} />
-      <WalletFloat style={{ left: 150, top: 410, ...card(wt(2, 1), [520, 40]) }} />
-      <div style={{ ...glass, left: 250, top: 735, padding: "16px 22px", display: "flex", alignItems: "center", gap: 12, fontSize: 19, fontWeight: 500, color: C.ink, ...card(wt(2, 3), [420, -160]) }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: C.greenSoft, display: "grid", placeItems: "center" }}><Icon name="shieldCheck" size={18} color={C.green} /></div>
-        Real accounts <span style={{ padding: "3px 10px", borderRadius: 99, background: C.redSoft, color: C.red, fontSize: 15 }}>2</span>
-      </div>
-      <SocialFloat style={{ left: 1440, top: 610, ...card(wt(2, 4), [-420, -60]) }} />
+      <Glass dark rx={ca.rx} ry={ca.ry} sheen={ca.sheen} style={{ left: 1430, top: 280, ...ca.style, filter: `${ca.style.filter ?? ""} blur(2.5px)`, transform: `${ca.style.transform} scale(0.86)` }}><CalendarG /></Glass>
+      <Glass dark rx={w.rx} ry={w.ry} sheen={w.sheen} style={{ left: 140, top: 390, ...w.style }}><WalletG /></Glass>
+      <Glass dark rx={a.rx} ry={a.ry} sheen={a.sheen} radius={20} style={{ left: 230, top: 730, ...a.style }}><AccountsG /></Glass>
+      <Glass dark rx={so.rx} ry={so.ry} sheen={so.sheen} style={{ left: 1450, top: 600, ...so.style }}><SocialG /></Glass>
     </AbsoluteFill>
   );
 };
 
 // ---------------- Scene 3: how it works ----------------
 const STEP_AT = [TM[4].start, TM[5].start, TM[6].start, TM[7].start];
+const CARD3: [number, number] = [ROW_X + 2 * (CW + CGAP) + CW / 2, 520 + CH / 2];
 const SceneHow: React.FC<{ t: number }> = ({ t }) => {
-  const up = k(t, 20.4, 21.3, EIO);
-  const exit = (d: number) => k(t, 29.7 + d, 30.5 + d, EIO);
-  const line = STEP_AT.reduce((acc, s, i) => (i === 0 ? acc : acc + k(t, s - 0.1, s + 0.6, EIO)), 0) / 3;
-  const ex = exit(0);
+  const line = STEP_AT.reduce((acc, s, i) => (i === 0 ? acc : acc + k(t, s - 0.1, s + 0.7, EIO)), 0) / 3;
   return (
-    <AbsoluteFill>
-      <div style={{ position: "absolute", top: mix(360, 130, up), width: W, display: "flex", flexDirection: "column", alignItems: "center", opacity: 1 - ex, transform: `translateY(${-30 * ex}px)`, filter: ex > 0 ? `blur(${ex * 8}px)` : undefined }}>
-        <div style={{ opacity: k(t, 17.7, 18.4), transform: `translateY(${(1 - k(t, 17.7, 18.4)) * 14}px)` }}><Eyebrow>HOW IT WORKS</Eyebrow></div>
+    <AbsoluteFill style={merge(zoomIn(t, 16.95, 18.1), zoomOut(t, 29.55, 30.6, 3.4, CARD3[0], CARD3[1]))}>
+      <div style={{ position: "absolute", top: 150, width: W, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ opacity: k(t, 17.25, 18.2, EIO), transform: `translateY(${(1 - k(t, 17.25, 18.2)) * 12}px)` }}><Eyebrow>HOW IT WORKS</Eyebrow></div>
         <div style={{ ...head(78, C.ink), marginTop: 30 }}>
           <RiseWord t={t} at={wt(3, 3)} style={{ color: C.red }}>Four </RiseWord>
           <RiseWord t={t} at={wt(3, 4)}>simple </RiseWord>
           <RiseWord t={t} at={wt(3, 5)}>steps.</RiseWord>
         </div>
       </div>
-      {/* connector */}
-      <div style={{ position: "absolute", left: ROW_X + CW / 2, top: 592, width: 3 * (CW + CGAP), height: 2, background: C.line, transformOrigin: "0 50%", transform: `scaleX(${k(t, 20.9, 22.0, EIO)})`, opacity: 1 - exit(0.1) }} />
-      <div style={{ position: "absolute", left: ROW_X + CW / 2, top: 592, width: 3 * (CW + CGAP), height: 2, background: `linear-gradient(90deg, ${C.green}, ${C.red})`, transformOrigin: "0 50%", transform: `scaleX(${line})`, opacity: 1 - exit(0.1) }} />
-      {[0, 1, 2, 3].map((i) => {
-        const s = STEP_AT[i];
-        const next = STEP_AT[i + 1];
-        const a = k(t, 20.85 + i * 0.12, 21.85 + i * 0.12);
-        const on = k(t, s - 0.05, s + 0.7, EIO) * (next ? 1 - k(t, next - 0.05, next + 0.5, EIO) : 1);
-        const done = next ? k(t, next - 0.05, next + 0.6, EIO) : 0;
-        const dim = 0.55 * (1 - k(t, s - 0.2, s + 0.4, EIO));
-        const e = exit(0.05 * i);
-        return <StepCard key={i} i={i} a={a * (1 - e)} on={on} done={done} dim={dim} style={{ left: ROW_X + i * (CW + CGAP), top: 520 + 50 * e, filter: e > 0 ? `blur(${e * 8}px)` : undefined }} />;
-      })}
+      <div style={{ position: "absolute", left: ROW_X + CW / 2, top: 592, width: 3 * (CW + CGAP), height: 2, borderRadius: 2, background: C.line, transformOrigin: "0 50%", transform: `scaleX(${k(t, 20.9, 22.2, EIO)})` }} />
+      <div style={{ position: "absolute", left: ROW_X + CW / 2, top: 592, width: 3 * (CW + CGAP), height: 2, borderRadius: 2, background: `linear-gradient(90deg, ${C.green}, ${C.red})`, transformOrigin: "0 50%", transform: `scaleX(${line})` }} />
+      <div style={{ position: "absolute", inset: 0, perspective: 1800 }}>
+        {[0, 1, 2, 3].map((i) => {
+          const s = STEP_AT[i];
+          const next = STEP_AT[i + 1];
+          const a = k(t, 20.85 + i * 0.13, 22.0 + i * 0.13);
+          const on = k(t, s - 0.05, s + 0.8, EIO) * (next ? 1 - k(t, next - 0.05, next + 0.6, EIO) : 1);
+          const done = next ? k(t, next - 0.05, next + 0.7, EIO) : 0;
+          const dim = 0.5 * (1 - k(t, s - 0.25, s + 0.45, EIO));
+          return (
+            <div key={i} style={{ position: "absolute", left: 0, top: 0, transform: `rotateX(${(1 - a) * 22}deg)`, transformOrigin: `${ROW_X + i * (CW + CGAP) + CW / 2}px 860px` }}>
+              <StepCard i={i} a={a} on={on} done={done} dim={dim} style={{ left: ROW_X + i * (CW + CGAP), top: 520 }} />
+            </div>
+          );
+        })}
+      </div>
     </AbsoluteFill>
   );
 };
@@ -175,8 +215,8 @@ function depositState(t: number): DepositState & { cardStep: number } {
   let viewT = 1;
   let out = false;
   for (const [c, from, to] of SW) {
-    if (t >= c && t < c + 0.25) { view = from; viewT = 1 - k(t, c, c + 0.25, EIO); out = true; }
-    else if (t >= c + 0.25) { view = to; viewT = k(t, c + 0.25, c + 0.75, EO); out = false; }
+    if (t >= c && t < c + 0.18) { view = from; viewT = 1 - k(t, c, c + 0.18, EIO); out = true; }
+    else if (t >= c + 0.18) { view = to; viewT = k(t, c + 0.18, c + 0.66, EO); out = false; }
   }
   const step = k(t, 43.75, 44.35, EIO) + k(t, 49.05, 49.65, EIO) + k(t, 54.65, 55.25, EIO) + k(t, 57.3, 57.8, EIO);
   // step 1
@@ -232,51 +272,45 @@ function cursorAt(t: number): { x: number; y: number; o: number; press: number }
 }
 
 const SceneDeposit: React.FC<{ t: number }> = ({ t }) => {
-  // laptop: rises sharp (30.3), pushes in, racks out of focus (34.5), racks back in at the end (58.7)
-  const rise = k(t, 30.3, 31.9, EO);
-  const push = k(t, 32.6, 34.8, EIO);
-  const blurIn = k(t, 34.45, 35.35, EIO);
-  const back = k(t, 58.7, 59.9, EIO);
+  // one continuous laptop path: settle (zoom-in) -> gentle push -> rack out of focus -> rack back to 3/4
+  const push = k(t, 32.4, 34.8, EIO);
+  const blurIn = k(t, 34.45, 35.45, EIO);
+  const back = k(t, 58.7, 60.0, EIO);
   const blur = 9 * blurIn * (1 - back);
   const mac = {
     x: mix(W / 2, 820, back),
-    y: mix(mix(1150, 760, rise), 820, push) * (1 - back) + 760 * back,
-    scale: mix(mix(0.4, 0.42, rise), 0.5, push) * (1 - back) + 0.44 * back,
-    rx: mix(mix(-30, -14, rise), -14, push),
-    ry: mix(mix(-30, -14, rise), -14, push) * (1 - back) - 20 * back,
+    y: mix(mix(770, 830, push), 760, back),
+    scale: mix(mix(0.42, 0.5, push), 0.44, back),
+    rx: -14,
+    ry: mix(mix(-12, -14, push), -20, back),
     lid: 16,
   };
   const st = depositState(t);
-  const onScreen = t < 37.4 ? <Dashboard depositGlow={k(t, 34.5, 35.2)} depositPress={0} /> : <DepositPage {...st} />;
+  const titleIn = k(t, 30.5, 31.5);
+  const titleOut = k(t, 33.9, 34.7, EIO);
 
-  // title
-  const titleIn = k(t, 30.55, 31.5);
-  const titleOut = k(t, 33.9, 34.6, EIO);
-
-  // big button lift + morph into the card
-  const lift = k(t, 34.75, 35.75, EO);
-  const morph = k(t, 37.15, 38.05, EIO);
-  const bp = k(t, 36.52, 36.62, EIO) * (1 - k(t, 36.64, 36.95, EIO));
-  const bx = mix(mix(780, W / 2, lift), W / 2, morph);
-  const by = mix(mix(600, 520, lift), CARD_Y + CARD_H / 2, morph);
+  // hero button lifts off the screen, gets pressed, then morphs into the deposit card
+  const lift = k(t, 34.75, 35.9, EO);
+  const morph = k(t, 37.15, 38.1, EIO);
+  const bp = k(t, 36.52, 36.62, EIO) * (1 - k(t, 36.64, 37.0, EIO));
+  const bx = mix(mix(800, W / 2, lift), W / 2, morph);
+  const by = mix(mix(610, 520, lift), CARD_Y + CARD_H / 2, morph);
   const bw = mix(440, 900, morph);
   const bh = mix(118, CARD_H, morph);
-  const showBtn = t >= 34.75 && t < 59.9;
-
-  // card leaves back into the screen
-  const cardBack = k(t, 58.75, 59.65, EIO);
-  const ghosts = k(t, 35.1, 35.9) * (1 - k(t, 36.95, 37.35, EIO));
+  const cardBack = k(t, 58.75, 59.75, EIO);
+  const ghosts = k(t, 35.1, 36.0) * (1 - k(t, 36.95, 37.4, EIO));
   const cur = cursorAt(t);
-
-  // transactions card
-  const tx = k(t, 59.75, 60.75);
-  const flip = k(t, 61.35, 61.7, EIO);
+  // the card breathes in 3D once it is a card
+  const settle = k(t, 37.9, 39.0, EO);
+  const crx = mix(10, 0, settle) * morph + Math.sin(t * 0.55) * 1.1 * settle;
+  const cry = Math.cos(t * 0.45) * 1.6 * settle;
+  const tx = k(t, 59.8, 61.0);
+  const flip = k(t, 61.35, 61.75, EIO);
 
   return (
     <AbsoluteFill>
-      {/* title */}
-      {t < 34.7 && (
-        <div style={{ position: "absolute", top: 92, width: W, display: "flex", flexDirection: "column", alignItems: "center", opacity: titleIn * (1 - titleOut), transform: `translateY(${(1 - titleIn) * 20 - titleOut * 30}px)`, filter: titleOut > 0 ? `blur(${titleOut * 8}px)` : undefined }}>
+      {t < 34.8 && (
+        <div style={{ position: "absolute", top: 96, width: W, display: "flex", flexDirection: "column", alignItems: "center", opacity: titleIn * (1 - titleOut), transform: `translateY(${(1 - titleIn) * 18 - titleOut * 24}px)`, filter: titleOut > 0 ? `blur(${titleOut * 8}px)` : undefined }}>
           <Eyebrow>DEPOSIT GUIDE</Eyebrow>
           <div style={{ ...head(62, C.ink), marginTop: 22 }}>
             <RiseWord t={t} at={30.75}>Make </RiseWord><RiseWord t={t} at={30.9}>a </RiseWord><RiseWord t={t} at={31.05} style={{ color: C.red }}>deposit </RiseWord>
@@ -284,46 +318,42 @@ const SceneDeposit: React.FC<{ t: number }> = ({ t }) => {
           </div>
         </div>
       )}
-      {/* laptop */}
-      {rise > 0 && (
-        <div style={{ position: "absolute", inset: 0, opacity: k(t, 30.3, 30.8, EIO), filter: `blur(${blur}px)` }}>
-          <MacPortal {...mac} active={t < 37.4 ? "Discover" : "Funds"} sub={t < 37.4 ? undefined : "Deposit"}>{onScreen}</MacPortal>
-        </div>
-      )}
-      {/* ghost siblings of the deposit button (depth of field) */}
+      <div style={{ position: "absolute", inset: 0, filter: `blur(${blur}px)` }}>
+        <MacImg src={t < 37.4 ? "dash" : "dep1"} src2="success" mixT={k(t, 58.4, 58.9, EIO)} {...mac} rim={0} />
+      </div>
       {ghosts > 0 && (
         <>
-          <div style={{ ...glass, left: 330 + (1 - ghosts) * 120, top: 472, width: 300, height: 96, display: "grid", placeItems: "center", filter: "blur(4px)", opacity: 0.7 * ghosts, fontSize: 30, color: C.red }}>Withdrawal</div>
-          <div style={{ ...glass, left: 1290 - (1 - ghosts) * 120, top: 472, width: 300, height: 96, display: "grid", placeItems: "center", filter: "blur(4px)", opacity: 0.7 * ghosts, fontSize: 30, color: C.red }}>Transfer</div>
+          <Glass rx={0} ry={14} style={{ left: 330 + (1 - ghosts) * 120, top: 472, opacity: 0.75 * ghosts, filter: "blur(4px)" }} inner={{ width: 300, height: 96, display: "grid", placeItems: "center", fontSize: 30, color: C.red }}>Withdrawal</Glass>
+          <Glass rx={0} ry={-14} style={{ left: 1290 - (1 - ghosts) * 120, top: 472, opacity: 0.75 * ghosts, filter: "blur(4px)" }} inner={{ width: 300, height: 96, display: "grid", placeItems: "center", fontSize: 30, color: C.red }}>Transfer</Glass>
         </>
       )}
-      {/* hero button that morphs into the deposit card */}
-      {showBtn && (
-        <div style={{ position: "absolute", left: bx - bw / 2, top: by - bh / 2, width: bw, height: bh, opacity: lift * (1 - cardBack), transform: `translate(${-140 * cardBack}px, ${-20 * cardBack}px) scale(${mix(0.35, 1, lift) * (1 - bp * 0.05) * mix(1, 0.55, cardBack)})`, filter: lift < 1 ? `blur(${(1 - lift) * 8}px)` : cardBack > 0 ? `blur(${cardBack * 6}px)` : undefined }}>
-          <div style={{ position: "absolute", inset: 0, borderRadius: mix(30, 28, morph), background: "#fff", boxShadow: `0 60px 110px -40px rgba(10,15,25,${mix(0.0, 0.55, morph)}), 0 0 0 1px rgba(17,24,39,${0.05 * morph})`, overflow: "hidden" }}>
-            {morph > 0.35 && (
-              <div style={{ position: "absolute", left: (bw - 900) / 2, top: (bh - CARD_H) / 2, opacity: k(t, 37.85, 38.3, EIO) }}>
-                <DepositCard {...st} h={CARD_H} style={{ border: "none", boxShadow: "none", background: "transparent" }} />
-              </div>
-            )}
-          </div>
-          <div style={{ position: "absolute", inset: 0, opacity: 1 - k(t, 37.62, 38.0, EIO) }}>
-            <BigButton press={0} glow={1 - morph} style={{ left: 0, top: 0, width: bw, height: bh, borderRadius: mix(30, 28, morph), fontSize: 40, color: `rgba(255,255,255,${1 - k(t, 37.12, 37.32, EIO)})` }} />
+      {t >= 34.75 && t < 59.8 && (
+        <div style={{ position: "absolute", left: bx - bw / 2, top: by - bh / 2, width: bw, height: bh, perspective: 1600, opacity: k(t, 34.75, 35.35, EIO) * (1 - k(t, 59.15, 59.75, EIO)), transform: `translate(${-150 * cardBack}px, ${-10 * cardBack}px) scale(${mix(0.4, 1, lift) * (1 - bp * 0.05) * mix(1, 0.5, cardBack)})`, filter: lift < 1 ? `blur(${(1 - lift) * 8}px)` : cardBack > 0 ? `blur(${cardBack * 6}px)` : undefined }}>
+          <div style={{ position: "absolute", inset: 0, transform: `rotateX(${crx}deg) rotateY(${cry}deg)` }}>
+            <div style={{ position: "absolute", inset: 0, borderRadius: mix(30, 28, morph), overflow: "hidden", background: "linear-gradient(165deg, #FFFFFF 0%, #FBFBFC 100%)", boxShadow: `inset 0 1px 0 #fff, 0 0 0 1px rgba(17,24,39,${0.06 * morph}), 0 30px 60px -24px rgba(17,24,39,${0.22 * morph}), 0 80px 140px -50px rgba(179,36,42,${0.35 * morph})` }}>
+              {morph > 0.35 && (
+                <div style={{ position: "absolute", left: (bw - 900) / 2, top: (bh - CARD_H) / 2, opacity: k(t, 37.85, 38.35, EIO) }}>
+                  <DepositCard {...st} h={CARD_H} style={{ border: "none", boxShadow: "none", background: "transparent" }} />
+                </div>
+              )}
+              <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: `linear-gradient(115deg, rgba(255,255,255,0) ${mix(-30, 130, k(t, 38.2, 39.6, EIO)) - 20}%, rgba(255,255,255,0.55) ${mix(-30, 130, k(t, 38.2, 39.6, EIO))}%, rgba(255,255,255,0) ${mix(-30, 130, k(t, 38.2, 39.6, EIO)) + 20}%)` }} />
+            </div>
+            <div style={{ position: "absolute", inset: 0, opacity: 1 - k(t, 37.62, 38.0, EIO) }}>
+              <BigButton press={0} glow={1 - morph} style={{ left: 0, top: 0, width: bw, height: bh, borderRadius: mix(30, 28, morph), fontSize: 40, color: `rgba(255,255,255,${1 - k(t, 37.12, 37.32, EIO)})` }} />
+            </div>
           </div>
         </div>
       )}
-      {/* transactions card */}
       {tx > 0 && (
-        <div style={{ ...glass, left: 1290, top: 380, width: 520, padding: "22px 28px", opacity: tx, transform: `translate(${(1 - tx) * 80}px, ${Math.sin(t * 1.1) * 5}px)`, filter: tx < 1 ? `blur(${(1 - tx) * 8}px)` : undefined }}>
+        <Glass rx={mix(12, 2, tx) + Math.sin(t * 0.6) * 1} ry={mix(-24, -10, tx) + Math.cos(t * 0.5) * 1.5} sheen={mix(-0.3, 1.2, k(t, 60.3, 61.7, EIO))} style={{ left: 1290, top: 380, opacity: k(t, 59.8, 60.4, EIO), transform: `translate(${(1 - tx) * 90}px, ${Math.sin(t * 0.9) * 5}px)`, filter: tx < 1 ? `blur(${(1 - tx) * 8}px)` : undefined }} inner={{ width: 520, padding: "22px 28px" }}>
           <div style={{ fontSize: 19, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Latest Transactions</div>
           <div style={{ position: "relative" }}>
             <div style={{ opacity: 1 - flip }}><TxRow method="Crypto Wallet · Just now" amount="$500.00" status="Pending" flash={1 - flip} /></div>
             <div style={{ position: "absolute", left: 0, right: 0, top: 0, opacity: flip }}><TxRow method="Crypto Wallet · Just now" amount="$500.00" status="Approved" flash={0.6 * (1 - k(t, 61.8, 62.4, EIO))} /></div>
           </div>
           <TxRow method="Crypto Wallet · Nov 18" amount="$750.00" status="Approved" />
-        </div>
+        </Glass>
       )}
-      {/* cursor */}
       {cur.o > 0 && (
         <div style={{ position: "absolute", inset: 0, opacity: cur.o }}>
           <Cursor x={cur.x} y={cur.y} press={cur.press} scale={t < 37.5 ? 1.6 : 1.15} />
@@ -353,24 +383,23 @@ const Badges: React.FC<{ t: number }> = ({ t }) => (
 
 // ---------------- Scene 6: outro ----------------
 const SceneOutro: React.FC<{ t: number }> = ({ t }) => {
-  const settle = k(t, 65.55, 66.5, EIO);
-  const cta = (i: number) => k(t, 67.2 + i * 0.14, 67.9 + i * 0.14, BACK);
-  const fade = k(t, 70.2, 70.95, EIO);
+  const cta = (i: number) => k(t, 67.2 + i * 0.15, 68.1 + i * 0.15, BACK);
+  const fade = k(t, 70.1, 70.95, EIO);
   return (
-    <AbsoluteFill style={{ opacity: 1 - fade }}>
-      <div style={{ position: "absolute", top: 280, width: W, display: "flex", flexDirection: "column", alignItems: "center", transform: `translateY(${(1 - settle) * 120}px) scale(${mix(1.03, 1, k(t, 63.4, 70.5, EIO))})` }}>
-        <AbetLogo width={560} state={{ letters: [0, 1, 2, 3].map((i) => k(t, 63.55 + i * 0.1, 64.5 + i * 0.1)), bull: k(t, 64.25, 65.1, EIO), bear: k(t, 64.4, 65.25, EIO) }} />
-        <div style={{ ...head(50, "#fff"), marginTop: 54, opacity: settle > 0 ? 1 : 0 }}>
+    <AbsoluteFill style={{ ...zoomIn(t, 62.75, 63.9), opacity: (zoomIn(t, 62.75, 63.9).opacity as number ?? 1) * (1 - fade) }}>
+      <div style={{ position: "absolute", top: 300, width: W, display: "flex", flexDirection: "column", alignItems: "center", transform: `scale(${mix(1, 1.025, k(t, 63, 70.8, EIO))})` }}>
+        <LogoReveal t={t} t0={63.25} width={560} />
+        <div style={{ ...head(50, "#fff"), marginTop: 56 }}>
           <RiseWord t={t} at={wt(14, 2)}>Your </RiseWord>
           <RiseWord t={t} at={wt(14, 3)}>markets, </RiseWord>
           <RiseWord t={t} at={wt(14, 4)} style={redGrad}>simplified.</RiseWord>
         </div>
         <div style={{ display: "flex", gap: 16, marginTop: 50 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "17px 30px", borderRadius: 99, background: C.red, color: "#fff", fontFamily: FONT, fontSize: 21, fontWeight: 500, boxShadow: "0 20px 40px -16px rgba(226,70,76,0.8)", opacity: Math.min(1, cta(0)), transform: `translateY(${(1 - cta(0)) * 16}px) scale(${mix(0.92, 1, cta(0))})` }}>Open your account <Icon name="arrowRight" size={20} color="#fff" /></div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "17px 30px", borderRadius: 99, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.04)", color: "#fff", fontFamily: FONT, fontSize: 21, opacity: Math.min(1, cta(1)), transform: `translateY(${(1 - cta(1)) * 16}px) scale(${mix(0.92, 1, cta(1))})` }}><Icon name="globe" size={20} color="rgba(255,255,255,0.8)" />abetglobal.com</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "17px 30px", borderRadius: 99, background: "linear-gradient(180deg, #D0343A, #9E1A20)", color: "#fff", fontFamily: FONT, fontSize: 21, fontWeight: 500, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 20px 40px -16px rgba(226,70,76,0.8)", opacity: Math.min(1, cta(0)), transform: `translateY(${(1 - cta(0)) * 14}px) scale(${mix(0.94, 1, cta(0))})` }}>Open your account <Icon name="arrowRight" size={20} color="#fff" /></div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "17px 30px", borderRadius: 99, border: "1px solid rgba(255,255,255,0.18)", background: "linear-gradient(150deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03))", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22)", color: "#fff", fontFamily: FONT, fontSize: 21, opacity: Math.min(1, cta(1)), transform: `translateY(${(1 - cta(1)) * 14}px) scale(${mix(0.94, 1, cta(1))})` }}><Icon name="globe" size={20} color="rgba(255,255,255,0.8)" />abetglobal.com</div>
         </div>
       </div>
-      <div style={{ position: "absolute", bottom: 46, width: W, textAlign: "center", fontFamily: FONT, fontSize: 15, color: "rgba(255,255,255,0.4)", opacity: k(t, 67.8, 68.6, EIO) }}>Trading involves risk. Only trade with capital you can afford to lose.</div>
+      <div style={{ position: "absolute", bottom: 46, width: W, textAlign: "center", fontFamily: FONT, fontSize: 15, color: "rgba(255,255,255,0.4)", opacity: k(t, 67.8, 68.7, EIO) }}>Trading involves risk. Only trade with capital you can afford to lose.</div>
     </AbsoluteFill>
   );
 };
@@ -381,41 +410,34 @@ export const AbetVideo: React.FC = () => {
   useEffect(() => { let done = false; const fin = () => { if (!done) { done = true; continueRender(h); } }; Promise.race([fontsLoaded.then(() => document.fonts.ready), new Promise((r) => setTimeout(r, 6000))]).then(fin, fin); }, [h]);
   const f = useCurrentFrame();
   const t = f / ABET_FPS;
-
-  const lightIn = k(t, 17.0, 17.65, EIO);
-  // circle wipe to the outro: crimson leads, navy follows
-  const wipe = k(t, 62.35, 63.45, EIO);
-  const wipe2 = k(t, 62.5, 63.6, EIO);
-  const R = 2300;
-
+  const lightIn = k(t, 16.85, 17.4, EIO);
+  const darkIn = k(t, 62.5, 63.15, EIO);
   return (
     <AbsoluteFill style={{ background: C.navy, fontFamily: FONT }}>
-      {/* dark world */}
-      {t < 17.7 && (
+      {t < 17.45 && (
         <AbsoluteFill>
-          <BgDark t={f} />
-          {t < 6.2 && <SceneLogo t={t} />}
-          {t > 5.5 && <SceneWhat t={t} />}
+          <BgDark t={f} glow={0.35 + 0.65 * k(t, 0, 1.6, EIO)} by={t < 6 ? 520 : 620} />
+          {t < 6 && <SceneLogo t={t} />}
+          {t > 5.2 && <AbsoluteFill style={zoomIn(t, 5.25, 6.4)}><SceneWhat t={t} /></AbsoluteFill>}
         </AbsoluteFill>
       )}
-      {/* light world */}
-      {t > 16.95 && t < 63.7 && (
+      {t > 16.8 && t < 63.25 && (
         <AbsoluteFill style={{ opacity: lightIn }}>
           <BgLight t={f} />
-          {t < 31 && <SceneHow t={t} />}
-          {t > 30 && <SceneDeposit t={t} />}
+          {t < 30.7 && <SceneHow t={t} />}
+          {t > 30.05 && (
+            <AbsoluteFill style={merge(zoomIn(t, 30.1, 31.3), zoomOut(t, 62.1, 63.2, 3.2, 820, 520))}>
+              <SceneDeposit t={t} />
+            </AbsoluteFill>
+          )}
           <Badges t={t} />
         </AbsoluteFill>
       )}
-      {/* outro world */}
-      {t > 62.3 && (
-        <>
-          <AbsoluteFill style={{ background: C.red, clipPath: `circle(${wipe * R}px at 960px 560px)` }} />
-          <AbsoluteFill style={{ clipPath: `circle(${wipe2 * R}px at 960px 560px)` }}>
-            <BgDark t={f} glow={1.1} />
-            {t > 63.3 && <SceneOutro t={t} />}
-          </AbsoluteFill>
-        </>
+      {t > 62.45 && (
+        <AbsoluteFill style={{ opacity: darkIn }}>
+          <BgDark t={f} glow={1} by={520} />
+          {t > 62.7 && <SceneOutro t={t} />}
+        </AbsoluteFill>
       )}
       <Captions t={t} />
     </AbsoluteFill>

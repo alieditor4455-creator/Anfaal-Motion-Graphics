@@ -52,10 +52,11 @@ export const ROW_X = (W - (4 * CW + 3 * CGAP)) / 2;
 export const StepCard: React.FC<{ i: number; a?: number; on?: number; done?: number; dim?: number; style?: React.CSSProperties }> = ({ i, a = 1, on = 0, done = 0, dim = 0, style }) => {
   const c = STEP_CARDS[i];
   return (
-    <div style={{ position: "absolute", width: CW, height: CH, borderRadius: 28, padding: 30, background: "rgba(255,255,255,0.9)", border: `${on > 0.5 ? 2 : 1}px solid ${on > 0.5 ? "rgba(179,36,42,0.55)" : C.line}`, boxShadow: `0 ${mix(10, 40, on)}px ${mix(30, 70, on)}px -24px rgba(${on > 0.5 ? "179,36,42" : "17,24,39"},${mix(0.18, 0.45, on)})`, opacity: a * (1 - dim * 0.55), transform: `translateY(${(1 - a) * 60 - on * 14}px) scale(${mix(0.94, 1, a)})`, fontFamily: FONT, ...style }}>
+    <div style={{ position: "absolute", width: CW, height: CH, borderRadius: 28, padding: 30, background: "linear-gradient(165deg, #FFFFFF 0%, rgba(255,255,255,0.86) 100%)", border: `1.5px solid rgba(179,36,42,${0.5 * on})`, boxShadow: `inset 0 1px 0 #fff, 0 0 0 1px rgba(17,24,39,${0.06 * (1 - on)}), 0 ${mix(14, 40, on)}px ${mix(36, 80, on)}px -24px rgba(${Math.round(mix(17, 179, on))},${Math.round(mix(24, 36, on))},${Math.round(mix(39, 42, on))},${mix(0.2, 0.45, on)})`, opacity: a * (1 - dim * 0.55), transform: `translateY(${(1 - a) * 60 - on * 14}px) scale(${mix(0.94, 1, a)})`, fontFamily: FONT, ...style }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ width: 84, height: 84, borderRadius: 22, background: on > 0.5 ? C.red : C.redSoft, display: "grid", placeItems: "center", boxShadow: on > 0.5 ? "0 16px 30px -12px rgba(179,36,42,0.7)" : "none" }}>
-          <Icon name={c.icon} size={40} color={on > 0.5 ? "#fff" : C.red} sw={1.8} draw={on > 0 && on < 1 ? on : 1} />
+        <div style={{ width: 84, height: 84, borderRadius: 22, position: "relative", background: C.redSoft, display: "grid", placeItems: "center", boxShadow: `0 16px 30px -12px rgba(179,36,42,${0.7 * on})` }}>
+          <div style={{ position: "absolute", inset: 0, borderRadius: 22, background: "linear-gradient(140deg, #E2464C, #9E1A20)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)", opacity: on }} />
+          <Icon style={{ position: "relative" }} name={c.icon} size={40} color={on > 0.5 ? "#fff" : C.red} sw={1.8} draw={on > 0 && on < 1 ? on : 1} />
         </div>
         <div style={{ width: 44, height: 44, borderRadius: 99, display: "grid", placeItems: "center", background: done > 0.5 ? C.green : "transparent", border: done > 0.5 ? "none" : `1.5px solid ${C.line}`, fontSize: 16, fontWeight: 600, color: C.faint }}>
           {done > 0.5 ? <Icon name="check" size={22} color="#fff" sw={3} draw={Math.min(1, (done - 0.5) * 2)} /> : `0${i + 1}`}
