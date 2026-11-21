@@ -227,9 +227,9 @@ const PH_AT = [wt(5, 0), wt(5, 3), wt(5, 6), wt(5, 9)];
 const CHIP_X = 520;
 const CHIP_Y = 520;
 const SceneHow: React.FC<{ t: number }> = ({ t }) => {
-  const OUT = 15.0;
+  const OUT = 14.8; // headline holds a beat after "simple", then masks out before the steps land
   const idx = PH_AT.slice(1).reduce((s, a) => s + k(t, a - 0.12, a + 0.33, EIO), 0);
-  const stepsIn = k(t, 15.1, 15.55, SNAP);
+  const stepsIn = k(t, 15.42, 15.8, SNAP);
   return (
     <AbsoluteFill>
       {t < 15.6 && (
@@ -240,14 +240,16 @@ const SceneHow: React.FC<{ t: number }> = ({ t }) => {
           </div>
           <div style={{ ...display(104, C.ink), marginTop: 6 }}>
             <MaskWord t={t} at={wt(4, 2)} out={OUT + 0.08}>is </MaskWord>
-            <MaskWord t={t} at={wt(4, 3)} out={OUT + 0.12} style={{ color: C.red }}>simple.</MaskWord>
+            <span style={{ position: "relative", display: "inline-block" }}>
+              <MaskWord t={t} at={wt(4, 3)} out={OUT + 0.12} style={{ color: C.red }}>simple.</MaskWord>
+              <svg viewBox="0 0 300 24" preserveAspectRatio="none" style={{ position: "absolute", left: "2%", width: "92%", bottom: "-0.12em", height: 22, overflow: "visible", opacity: 1 - k(t, OUT, OUT + 0.3, EIO) }}>
+                <path d="M4 16 C 80 5, 200 5, 296 13" stroke={C.red} strokeWidth="6" strokeLinecap="round" fill="none" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - k(t, wt(4, 3) + 0.08, wt(4, 3) + 0.48, EIO)} />
+              </svg>
+            </span>
           </div>
-          <svg width="330" height="24" viewBox="0 0 330 24" style={{ position: "absolute", left: 1010, top: 222, overflow: "visible", opacity: 1 - k(t, OUT, OUT + 0.3, EIO) }}>
-            <path d="M4 16 C 90 4, 220 4, 326 14" stroke={C.red} strokeWidth="6" strokeLinecap="round" fill="none" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - k(t, wt(4, 3) + 0.25, wt(4, 3) + 0.8, EIO)} />
-          </svg>
         </div>
       )}
-      {t > 15.0 && (
+      {t > 15.4 && (
         <AbsoluteFill style={{ opacity: stepsIn }}>
           {/* rolling icon chip */}
           <div style={{ position: "absolute", left: CHIP_X - 70, top: CHIP_Y - 70, width: 140, height: 140, perspective: 800, transform: `scale(${mix(0.6, 1, stepsIn)})` }}>
@@ -321,7 +323,7 @@ const CARD_S = 0.9;
 const CX = 160; // card top-left on stage
 const CY = 540 - (590 * CARD_S) / 2;
 const toStage = (x: number, y: number): [number, number] => [CX + x * CARD_S, CY + y * CARD_S];
-const RX = 1150; // right text column x
+const RX = 1090; // right text column x (card ends at 970)
 
 function dep(t: number): DepositState {
   const SW: [number, 0 | 1 | 2 | 3, 0 | 1 | 2 | 3][] = [[30.05, 0, 1], [33.2, 1, 2], [35.2, 2, 3]];
@@ -381,9 +383,9 @@ function cursor(t: number) {
 const StepText: React.FC<{ t: number; a: number; b: number; n: string; title: string; children?: React.ReactNode }> = ({ t, a, b, n, title, children }) => {
   if (t < a - 0.1 || t > b + 0.6) return null;
   return (
-    <div style={{ position: "absolute", left: RX, top: 330, width: 700 }}>
+    <div style={{ position: "absolute", left: RX, top: 330, width: 760 }}>
       <div style={{ fontFamily: FONT, fontSize: 24, fontWeight: 600, letterSpacing: "0.16em", color: C.red }}><MaskWord t={t} at={a} out={b}>{n}</MaskWord></div>
-      <div style={{ ...display(76, C.ink), marginTop: 14 }}>{title.split(" ").map((w, i) => <MaskWord key={i} t={t} at={a + 0.06 + i * 0.07} out={b + i * 0.03}>{w + " "}</MaskWord>)}</div>
+      <div style={{ ...display(66, C.ink), marginTop: 14 }}>{title.split(" ").map((w, i) => <MaskWord key={i} t={t} at={a + 0.06 + i * 0.07} out={b + i * 0.03}>{w + " "}</MaskWord>)}</div>
       <div style={{ marginTop: 30, opacity: 1 - k(t, b, b + 0.35, EIO), transform: `translateY(${-k(t, b, b + 0.45, EIO) * 30}px)` }}>{children}</div>
     </div>
   );
@@ -503,12 +505,12 @@ const SceneDeposit: React.FC<{ t: number }> = ({ t }) => {
         <div style={display(104, C.green, 600)}><HitWord t={t} at={wt(11, 3)}>Done.</HitWord></div>
       </StepText>
       {t > 37.5 && (
-        <div style={{ position: "absolute", left: RX, top: 300, width: 700 }}>
-          <div style={display(76, C.ink)}>
+        <div style={{ position: "absolute", left: RX, top: 250, width: 760 }}>
+          <div style={display(70, C.ink)}>
             {"Track it anytime.".split(" ").map((w, i) => <MaskWord key={i} t={t} at={wt(12, 0) + i * 0.09}>{w + " "}</MaskWord>)}
           </div>
           {tx > 0 && (
-            <Glass rx={mix(14, 2, tx) + Math.sin(t * 0.7) * 1} ry={mix(-26, -8, tx) + Math.cos(t * 0.6) * 1.5} sheen={mix(-0.3, 1.2, k(t, 38.8, 39.9, EIO))} style={{ left: 0, top: 130, opacity: Math.min(1, tx * 2), transform: `translate3d(${(1 - tx) * 120}px, ${Math.sin(t * 1.1) * 4}px, 0)` }} inner={{ width: 560, padding: "22px 28px" }}>
+            <Glass rx={mix(14, 2, tx) + Math.sin(t * 0.7) * 1} ry={mix(-26, -8, tx) + Math.cos(t * 0.6) * 1.5} sheen={mix(-0.3, 1.2, k(t, 38.8, 39.9, EIO))} style={{ left: 0, top: 120, opacity: Math.min(1, tx * 2), transform: `translate3d(${(1 - tx) * 120}px, ${Math.sin(t * 1.1) * 4}px, 0)` }} inner={{ width: 540, padding: "22px 28px", zoom: 1.3 } as React.CSSProperties}>
               <div style={{ fontSize: 19, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Latest Transactions</div>
               <div style={{ position: "relative" }}>
                 <div style={{ opacity: 1 - flip }}><TxRow method="Crypto Wallet · Just now" amount="$500.00" status="Pending" flash={1 - flip} /></div>
