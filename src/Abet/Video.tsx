@@ -422,8 +422,8 @@ const GlassWipe: React.FC<{ t: number }> = ({ t }) => (
       // glide in -> brief rest fully covering the frame (swap happens here) -> glide out. Zero velocity at the joins.
       const x = 1980 - 2640 * k(t, a, tr.tm - 0.1, EIO) - 2640 * k(t, tr.tm + 0.1, b, EIO);
       const swap = tr.from !== tr.to;
-      const L = mix(tr.from, tr.to, k(t, tr.tm - 0.08, tr.tm + 0.08, EIO)); // 0 dark glass, 1 light glass
-      const solid = swap ? bell(t, tr.tm - 0.3, tr.tm - 0.1, tr.tm + 0.1, tr.tm + 0.3) : 0; // hide the world change
+      const L = mix(tr.from, tr.to, k(t, tr.tm - 0.36, tr.tm + 0.34, EIO)); // 0 dark glass, 1 light glass (soft 0.7s fade while covered)
+      const solid = swap ? bell(t, tr.tm - 0.37, tr.tm - 0.18, tr.tm + 0.16, tr.tm + 0.32) : 0; // hide the world change
       const c = (d: number, l: number) => Math.round(mix(d, l, L));
       return (
         <div key={tr.tm} style={{ position: "absolute", left: 0, top: -70, width: 3200, height: 1220, borderRadius: 72, transform: `translate3d(${x}px, 0, 0)`, willChange: "transform", backdropFilter: "blur(38px) saturate(150%)", WebkitBackdropFilter: "blur(38px) saturate(150%)", background: `linear-gradient(100deg, rgba(${c(40, 255)},${c(48, 255)},${c(66, 255)},${mix(mix(0.5, 0.62, L), 0.97, solid)}) 0%, rgba(${c(16, 246)},${c(21, 247)},${c(34, 250)},${mix(mix(0.42, 0.5, L), 0.97, solid)}) 100%)`, boxShadow: `inset 1.5px 0 0 rgba(255,255,255,${mix(0.35, 0.9, L)}), inset 0 1px 0 rgba(255,255,255,${mix(0.25, 0.9, L)}), -40px 0 90px rgba(0,0,0,${mix(0.35, 0.12, L)})`, overflow: "hidden", zIndex: 60 }}>
