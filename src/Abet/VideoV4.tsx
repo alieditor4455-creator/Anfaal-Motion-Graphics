@@ -242,8 +242,8 @@ const SceneHow: React.FC<{ t: number }> = ({ t }) => {
             <MaskWord t={t} at={wt(4, 2)} out={OUT + 0.08}>is </MaskWord>
             <span style={{ position: "relative", display: "inline-block" }}>
               <MaskWord t={t} at={wt(4, 3)} out={OUT + 0.12} style={{ color: C.red }}>simple.</MaskWord>
-              <svg viewBox="0 0 300 24" preserveAspectRatio="none" style={{ position: "absolute", left: "2%", width: "92%", bottom: "-0.12em", height: 22, overflow: "visible", opacity: 1 - k(t, OUT, OUT + 0.3, EIO) }}>
-                <path d="M4 16 C 80 5, 200 5, 296 13" stroke={C.red} strokeWidth="6" strokeLinecap="round" fill="none" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - k(t, wt(4, 3) + 0.08, wt(4, 3) + 0.48, EIO)} />
+              <svg viewBox="0 0 300 30" preserveAspectRatio="none" style={{ position: "absolute", left: "-1%", width: "102%", bottom: "-0.06em", height: 26, overflow: "visible", opacity: 1 - k(t, OUT, OUT + 0.3, EIO) }}>
+                <path d="M3 20 C 70 9, 150 6, 230 9 S 290 15, 297 12" stroke={C.red} strokeWidth="7" strokeLinecap="round" fill="none" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - k(t, wt(4, 3) + 0.06, wt(4, 3) + 0.46, EIO)} />
               </svg>
             </span>
           </div>
@@ -288,17 +288,17 @@ const SceneAsk: React.FC<{ t: number; asMask?: boolean }> = ({ t }) => {
   const top1 = 1;
   return (
     <AbsoluteFill>
-      <svg width={1920} height={1080} style={{ position: "absolute", inset: 0 }}>
+      <svg width={1920} height={1080} style={{ position: "absolute", inset: 0, overflow: "visible" }}>
         <defs>
-          <mask id="dep-knock" maskUnits="userSpaceOnUse" x="0" y="0" width="1920" height="1080">
-            <rect x="0" y="0" width="1920" height="1080" fill="#fff" />
+          <mask id="dep-knock" maskUnits="userSpaceOnUse" x="-160" y="-120" width="2240" height="1320">
+            <rect x="-160" y="-120" width="2240" height="1320" fill="#fff" />
             <g transform={`translate(${MASK_A[0]} ${MASK_A[1]}) scale(${s}) translate(${-MASK_A[0]} ${-MASK_A[1]})`}>
               <text x={DEP_TXT.x} y={DEP_TXT.y} textAnchor="middle" fontFamily="Lexend" fontWeight={600} fontSize={DEP_TXT.size} letterSpacing="-9" fill="#000" opacity={knock}>deposit?</text>
             </g>
           </mask>
           <linearGradient id="crim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#C8303A" /><stop offset="1" stopColor="#7E0E14" /></linearGradient>
         </defs>
-        <rect x="0" y="0" width="1920" height="1080" fill="url(#crim)" mask="url(#dep-knock)" />
+        <rect x="-160" y="-120" width="2240" height="1320" fill="url(#crim)" mask="url(#dep-knock)" />
         {/* the white word itself (hit animation) */}
         {knock < 1 && (
           <g style={{ transformOrigin: `${DEP_TXT.x}px ${DEP_TXT.y - 80}px`, transform: `scale(${mix(1.45, 1, p)})`, opacity: Math.min(1, p * 2.2) * (1 - knock) }}>
@@ -656,43 +656,75 @@ const Mosaic: React.FC<{ t: number; tm: number; dir: Dir; hue?: number }> = ({ t
 // scene-change times (each is the moment the frame is fully covered)
 const SC = { what: 2.85, how: 13.05, ask: 20.7, dep: 22.75, outro: 41.4 };
 
+// ---------------- motion blur (centred shutter, only during fast moves) ----------------
+const MB: React.FC<{ t: number; on: boolean; n?: number; shutter?: number; render: (t: number) => React.ReactNode }> = ({ t, on, n = 6, shutter = 0.55, render }) => {
+  if (!on) return <>{render(t)}</>;
+  return (
+    <AbsoluteFill style={{ isolation: "isolate" }}>
+      {Array.from({ length: n }, (_, i) => {
+        const dt = (shutter / V4_FPS) * ((i + 0.5) / n - 0.5);
+        return <AbsoluteFill key={i} style={{ mixBlendMode: "plus-lighter", filter: `opacity(${1 / n})` }}>{render(t + dt)}</AbsoluteFill>;
+      })}
+    </AbsoluteFill>
+  );
+};
+const win = (t: number, ws: [number, number][]) => ws.some(([a, b]) => t >= a && t <= b);
+const BLUR_WINDOWS: [number, number][] = [
+  [6.45, 7.7], [10.65, 12.35], // stack swing-in; collapse + word hits
+  [12.9, 14.0], [14.75, 15.95], ...PH_AT.slice(1).map((a) => [a - 0.2, a + 0.45] as [number, number]), // steps: mask reveals, slot rolls
+  [20.75, 22.25], // "So, how do you deposit?" hits
+  [22.7, 23.75], [23.5, 26.0], // dashboard in, cursor + button-to-card morph
+  [wt(8, 3) - 0.2, wt(8, 3) + 0.45], [wt(8, 5) - 0.2, wt(8, 5) + 0.45], [wt(8, 7) - 0.2, wt(8, 7) + 0.45], // method swaps
+  [28.8, 30.75], [32.5, 33.8], [34.5, 36.0], [36.6, 37.1], [37.45, 39.1], // cursor, step changes, "Done.", track
+];
+
+// ---------------- camera: continuous push, drift and parallax; a nudge on every deposit step ----------------
+const SCENES: [number, number][] = [[0, 2.85], [2.85, 13.05], [13.05, 20.7], [20.7, 22.75], [22.75, 41.4], [41.4, 48]];
+const NUDGES = [25.95, 30.05, 33.2, 35.2, 37.6];
+const camera = (t: number, depth = 1): React.CSSProperties => {
+  const sc = SCENES.find(([a, b]) => t >= a && t < b) ?? SCENES[SCENES.length - 1];
+  const p = (t - sc[0]) / (sc[1] - sc[0]);
+  const ease = 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, p)));
+  const nudge = NUDGES.reduce((acc, n) => acc + bell(t, n - 0.1, n + 0.35, n + 0.45, n + 1.4), 0);
+  const z = 1 + depth * (0.045 * ease + 0.016 * nudge);
+  const x = depth * (Math.sin(t * 0.31 + 1.3) * 11);
+  const y = depth * (Math.cos(t * 0.23) * 7 - 10 * ease);
+  const r = depth * Math.sin(t * 0.17) * 0.22;
+  return { transform: `translate3d(${x}px, ${y}px, 0) scale(${z}) rotate(${r}deg)`, transformOrigin: "960px 540px", willChange: "transform" };
+};
+
 export const AbetVideoV4: React.FC = () => {
   const [h] = useState(() => delayRender("fonts"));
   useEffect(() => { let d = false; const fin = () => { if (!d) { d = true; continueRender(h); } }; Promise.race([fontsLoaded.then(() => document.fonts.ready), new Promise((r) => setTimeout(r, 6000))]).then(fin, fin); }, [h]);
   const f = useCurrentFrame();
   const t = f / V4_FPS;
+  const blurOn = win(t, BLUR_WINDOWS);
   return (
     <AbsoluteFill style={{ background: C.navy, fontFamily: FONT, overflow: "hidden" }}>
-      {t < SC.how && (
-        <AbsoluteFill>
-          <BgDark t={f} glow={0.35 + 0.65 * k(t, 0, 0.8, EIO)} by={t < SC.what ? 520 : 620} />
-          {t < SC.what ? <SceneLogo t={t} /> : <SceneWhat t={t} />}
+      {/* background: moves at 35% of the camera (parallax) */}
+      <AbsoluteFill style={camera(t, 0.35)}>
+        <AbsoluteFill style={{ transform: "scale(1.06)" }}>
+          {t < SC.how && <BgDark t={f} glow={0.35 + 0.65 * k(t, 0, 0.8, EIO)} by={t < SC.what ? 520 : 620} />}
+          {t >= SC.how && t < SC.ask && <BgLight t={f} />}
+          {t >= SC.dep && t < SC.outro && <BgLight t={f} />}
+          {t >= SC.outro && <BgDark t={f} glow={1} by={520} />}
         </AbsoluteFill>
-      )}
-      {t >= SC.how && t < SC.ask && (
-        <AbsoluteFill>
-          <BgLight t={f} />
-          <SceneHow t={t} />
-        </AbsoluteFill>
-      )}
-      {t >= SC.ask && t < SC.dep && <SceneAsk t={t} />}
-      {t >= SC.dep && t < SC.outro && (
-        <AbsoluteFill>
-          <BgLight t={f} />
-          <SceneDeposit t={t} />
-        </AbsoluteFill>
-      )}
-      {t >= SC.outro && (
-        <AbsoluteFill>
-          <BgDark t={f} glow={1} by={520} />
-          <SceneOutro t={t} />
-        </AbsoluteFill>
-      )}
-      <Mosaic t={t} tm={SC.what} dir="diag" />
-      <Mosaic t={t} tm={SC.how} dir="ltr" hue={0.15} />
-      <Mosaic t={t} tm={SC.ask} dir="radial" />
-      <Mosaic t={t} tm={SC.dep} dir="rdiag" hue={0.1} />
-      <Mosaic t={t} tm={SC.outro} dir="diag" hue={0.2} />
+      </AbsoluteFill>
+      {/* content: full camera */}
+      <AbsoluteFill style={camera(t, 1)}>
+        {t < SC.what && <SceneLogo t={t} />}
+        {t >= SC.what && t < SC.how && <MB t={t} on={blurOn} render={(tt) => <SceneWhat t={tt} />} />}
+        {t >= SC.how && t < SC.ask && <MB t={t} on={blurOn} render={(tt) => <SceneHow t={tt} />} />}
+        {t >= SC.ask && t < SC.dep && <MB t={t} on={blurOn} render={(tt) => <SceneAsk t={tt} />} />}
+        {t >= SC.dep && t < SC.outro && <MB t={t} on={blurOn} n={5} render={(tt) => <SceneDeposit t={tt} />} />}
+        {t >= SC.outro && <SceneOutro t={t} />}
+      </AbsoluteFill>
+      {/* the mosaic always gets motion blur */}
+      {[["what", "diag", 0], ["how", "ltr", 0.15], ["ask", "radial", 0], ["dep", "rdiag", 0.1], ["outro", "diag", 0.2]].map(([key, dir, hue]) => {
+        const tm = SC[key as keyof typeof SC];
+        if (t < tm - 1 || t > tm + 1) return null;
+        return <MB key={key as string} t={t} on n={6} shutter={0.6} render={(tt) => <Mosaic t={tt} tm={tm} dir={dir as Dir} hue={hue as number} />} />;
+      })}
       <Caps t={t} />
     </AbsoluteFill>
   );
