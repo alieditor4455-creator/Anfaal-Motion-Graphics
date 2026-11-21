@@ -45,17 +45,24 @@ const CHUNKS: Chunk[] = (() => {
     });
   });
   // never overlap: end each chunk when the next begins
-  for (let i = 0; i < out.length - 1; i++) out[i].b = Math.min(out[i].b, out[i + 1].a + 0.05);
+  // hand-over: previous chunk fully fades out (0.25s) before the next fades in (0.25s) — no pops
+  for (let i = 0; i < out.length - 1; i++) {
+    const last = out[i].t[out[i].t.length - 1];
+    out[i].b = Math.min(out[i].b, Math.max(last + 0.22, out[i + 1].a - 0.47));
+  }
   return out;
 })();
 
-const Captions: React.FC<{ t: number }> = ({ t }) => {
-  const c = CHUNKS.find((x) => t >= x.a - 0.2 && t <= x.b + 0.25);
-  if (!c) return null;
-  const op = k(t, c.a - 0.2, c.a + 0.05, EIO) * (1 - k(t, c.b, c.b + 0.25, EIO));
-  const spoken = c.t.reduce((s, wtime) => s + Math.max(0, Math.min(1, (t - wtime) / 0.16)), 0);
-  return <Caption text={c.words.join(" ")} k={spoken} dark={c.dark} opacity={op} y={(1 - op) * 10} />;
-};
+const Captions: React.FC<{ t: number }> = ({ t }) => (
+  <>
+    {CHUNKS.filter((x) => t >= x.a - 0.2 && t <= x.b + 0.25).map((c) => {
+      const op = k(t, c.a - 0.2, c.a + 0.05, EIO) * (1 - k(t, c.b, c.b + 0.25, EIO));
+      if (op <= 0) return null;
+      const spoken = c.t.reduce((s, wtime) => s + Math.max(0, Math.min(1, (t - wtime) / 0.16)), 0);
+      return <Caption key={c.a} text={c.words.join(" ")} k={spoken} dark={c.dark} opacity={op} y={(1 - op) * 10} />;
+    })}
+  </>
+);
 
 // ---------------- Scene 1: logo intro ----------------
 const SceneLogo: React.FC<{ t: number }> = ({ t }) => {
@@ -89,7 +96,7 @@ const SceneWhat: React.FC<{ t: number }> = ({ t }) => {
     return { opacity: p * (1 - floatsOut), transform: `translate(${(1 - p) * from[0] + floatsOut * from[0] * -0.6}px, ${(1 - p) * from[1] + bob(at)}px) scale(${mix(0.7, 1, p) * (1 - 0.06 * one) + floatsOut * 0.25})`, filter: p < 1 ? `blur(${(1 - p) * 10}px)` : undefined };
   };
   return (
-    <AbsoluteFill style={{ transform: `scale(${1 + zoom * 3.4})`, transformOrigin: `${S2_FOCUS[0]}px ${S2_FOCUS[1]}px`, filter: zoom > 0.3 ? `blur(${(zoom - 0.3) * 10}px)` : undefined }}>
+    <AbsoluteFill style={{ transform: `scale(${1 + zoom * 3.4})`, transformOrigin: `${S2_FOCUS[0]}px ${S2_FOCUS[1]}px`, filter: `blur(${Math.max(0, zoom - 0.3) * 10}px)` }}>
       {/* headline */}
       <div style={{ position: "absolute", width: W, top: mix(385, 74, up), textAlign: "center", transform: `scale(${mix(1.22, 1, up)})`, opacity: 1 - floatsOut }}>
         <div style={head(58, "#fff")}>
@@ -279,7 +286,7 @@ const SceneDeposit: React.FC<{ t: number }> = ({ t }) => {
       )}
       {/* laptop */}
       {rise > 0 && (
-        <div style={{ position: "absolute", inset: 0, opacity: k(t, 30.3, 30.8, EIO), filter: blur > 0.05 ? `blur(${blur}px)` : undefined }}>
+        <div style={{ position: "absolute", inset: 0, opacity: k(t, 30.3, 30.8, EIO), filter: `blur(${blur}px)` }}>
           <MacPortal {...mac} active={t < 37.4 ? "Discover" : "Funds"} sub={t < 37.4 ? undefined : "Deposit"}>{onScreen}</MacPortal>
         </div>
       )}
