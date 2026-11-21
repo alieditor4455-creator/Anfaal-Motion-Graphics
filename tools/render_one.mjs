@@ -4,7 +4,7 @@ import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 import fs from "fs";
 const [, , id, out, conc = "3"] = process.argv;
-const browserExecutable = fs.readdirSync("/opt/pw-browsers").filter((d) => d.startsWith("chromium_headless_shell")).map((d) => `/opt/pw-browsers/${d}/chrome-headless-shell-linux64/chrome-headless-shell`)[0];
+const browserExecutable = fs.readdirSync("/opt/pw-browsers").filter((d) => d.startsWith("chromium_headless_shell")).map((d) => `/opt/pw-browsers/${d}/chrome-headless-shell-linux64/chrome-headless-shell`).filter((p) => fs.existsSync(p))[0];
 const serveUrl = await bundle({ entryPoint: "src/index.ts", publicDir: process.env.PUBLIC_DIR || undefined });
 const composition = await selectComposition({ serveUrl, id, browserExecutable });
 let last = -10;
