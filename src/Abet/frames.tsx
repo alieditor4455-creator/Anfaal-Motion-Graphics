@@ -17,7 +17,7 @@ export const H = 1080;
 const Stage: React.FC<{ children: React.ReactNode }> = ({ children }) => <div style={{ position: "relative", width: W, height: H, overflow: "hidden", fontFamily: FONT }}>{children}</div>;
 
 const head = (size: number, color: string, extra: React.CSSProperties = {}): React.CSSProperties => ({ fontFamily: FONT, fontSize: size, fontWeight: 400, letterSpacing: "-0.035em", lineHeight: 1.08, color, ...extra });
-export const redGrad: React.CSSProperties = { background: "linear-gradient(90deg, #E2464C 0%, #B3242A 55%, #FF8A80 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" };
+export const redGrad: React.CSSProperties = { background: "linear-gradient(90deg, #E2464C 0%, #B3242A 55%, #FF8A80 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", padding: "0 0.04em 0.18em", margin: "0 -0.04em -0.18em" }; // padding keeps descenders (g, p) inside the painted box
 
 // ---------- Scene pieces reused by the video ----------
 export const LogoLockup: React.FC<{ logo?: object; line?: number; tag?: number; width?: number }> = ({ logo, line = 1, tag = 1, width = 860 }) => (

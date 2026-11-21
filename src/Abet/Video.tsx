@@ -159,7 +159,7 @@ const SceneWhat: React.FC<{ t: number }> = ({ t }) => {
           <MacImg src="dash" x={W / 2} y={mix(980, 745, rise) - 6 * drift} scale={0.42 + 0.022 * drift} rx={mix(-24, -14, rise)} ry={mix(-30, -14, rise) + 5 * drift} lid={16} rim={0.7 + 0.5 * one} />
         </div>
       )}
-      <Glass dark rx={ca.rx} ry={ca.ry} sheen={ca.sheen} style={{ left: 1430, top: 280, ...ca.style, filter: `${ca.style.filter ?? ""} blur(2.5px)`, transform: `${ca.style.transform} scale(0.86)` }}><CalendarG /></Glass>
+      <Glass dark rx={ca.rx} ry={ca.ry} sheen={ca.sheen} style={{ left: 1430, top: 280, ...ca.style, transform: `${ca.style.transform} scale(0.9)` }}><CalendarG /></Glass>
       <Glass dark rx={w.rx} ry={w.ry} sheen={w.sheen} style={{ left: 140, top: 390, ...w.style }}><WalletG /></Glass>
       <Glass dark rx={a.rx} ry={a.ry} sheen={a.sheen} radius={20} style={{ left: 230, top: 730, ...a.style }}><AccountsG /></Glass>
       <Glass dark rx={so.rx} ry={so.ry} sheen={so.sheen} style={{ left: 1450, top: 600, ...so.style }}><SocialG /></Glass>
