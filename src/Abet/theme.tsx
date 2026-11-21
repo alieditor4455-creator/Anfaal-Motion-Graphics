@@ -1,6 +1,6 @@
 import React from "react";
 import { Easing, interpolate, staticFile } from "remotion";
-import { loadFont } from "@remotion/fonts";
+import { LEXEND_CSS } from "./fontData";
 
 // ---------- Brand tokens (sampled from ABET's own logo + client portal) ----------
 export const C = {
@@ -24,11 +24,14 @@ export const C = {
 };
 
 export const FONT = "Lexend";
-const fontsLoaded = Promise.all(
-  [300, 400, 500, 600, 700].map((w) =>
-    loadFont({ family: FONT, url: staticFile(`abet/fonts/Lexend-${w}.ttf`), weight: String(w) }),
-  ),
-);
+if (typeof document !== "undefined" && !document.getElementById("lexend-inline")) {
+  const el = document.createElement("style");
+  el.id = "lexend-inline";
+  el.textContent = LEXEND_CSS;
+  document.head.appendChild(el);
+}
+const fontsLoaded: Promise<unknown> =
+  typeof document === "undefined" ? Promise.resolve() : Promise.all([300, 400, 500, 600, 700].map((w) => document.fonts.load(`${w} 20px Lexend`)));
 export { fontsLoaded };
 
 // ---------- Motion ----------
