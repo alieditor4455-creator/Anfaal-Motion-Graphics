@@ -121,7 +121,7 @@ export const SocialFloat: React.FC<{ style?: React.CSSProperties; blur?: number 
 
 export const BigButton: React.FC<{ press?: number; glow?: number; style?: React.CSSProperties }> = ({ press = 0, glow = 1, style }) => (
   <div style={{ position: "absolute", display: "flex", alignItems: "center", justifyContent: "center", gap: 16, width: 440, height: 118, borderRadius: 30, background: `linear-gradient(180deg, #C42B31, ${C.redDeep})`, color: "#fff", fontFamily: FONT, fontSize: 40, fontWeight: 500, letterSpacing: "-0.02em", transform: `scale(${1 - press * 0.05})`, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.25), 0 40px 70px -28px rgba(122,10,10,0.8), 0 0 0 ${14 * glow}px rgba(179,36,42,${0.1 * glow})`, ...style }}>
-    <Icon name="plus" size={36} color="#fff" sw={2.4} />Deposit
+    <Icon name="plus" size={36} color="currentColor" sw={2.4} />Deposit
   </div>
 );
 

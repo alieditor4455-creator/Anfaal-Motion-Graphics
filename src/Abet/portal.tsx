@@ -224,6 +224,7 @@ export type DepositState = {
   success?: number; // success content 0..1
   summaryAmount?: string;
   continuePress?: number;
+  out?: boolean; // panel leaving (slides left)
 };
 
 const Continue: React.FC<{ label: string; press?: number; morph?: number }> = ({ label, press = 0, morph = 0 }) => {
@@ -255,7 +256,7 @@ const Row: React.FC<{ l: string; v: React.ReactNode; check?: number; strong?: bo
 
 export const DepositCard: React.FC<DepositState & { style?: React.CSSProperties; h?: number }> = ({ style, h = 700, ...st }) => {
   const vt = st.viewT ?? 1;
-  const enter: React.CSSProperties = { position: "absolute", left: 30, right: 30, top: 150, bottom: 28, opacity: vt, transform: `translateX(${(1 - vt) * 40}px)` };
+  const enter: React.CSSProperties = { position: "absolute", left: 30, right: 30, top: 150, bottom: 28, opacity: vt, transform: `translateX(${(1 - vt) * (st.out ? -40 : 40)}px)`, filter: vt < 1 ? `blur(${(1 - vt) * 6}px)` : undefined };
   return (
   <div style={{ ...card, width: 900, height: h, padding: "26px 30px", position: "relative", overflow: "hidden", ...style }}>
           <Stepper step={st.step} />
@@ -306,15 +307,12 @@ export const DepositCard: React.FC<DepositState & { style?: React.CSSProperties;
           )}
           {st.view === 3 && (
             <div style={enter}>
-              {(st.success ?? 0) <= 0 ? (
-                <>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, ...T(21, 600, C.ink) }}><Num n={4} />Confirmation</div>
-                  <div style={{ ...T(16, 400, C.sub), marginTop: 14, maxWidth: 560 }}>You're depositing <b style={{ color: C.ink }}>$500.00</b> via Crypto Wallet into your ABET wallet.</div>
-                  <div style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}><Continue label="Confirm Deposit" press={st.confirmPress} morph={st.morph} /></div>
-                </>
-              ) : (
-                <Success t={st.success ?? 0} />
-              )}
+              <div style={{ position: "absolute", inset: 0, opacity: 1 - Math.min(1, (st.success ?? 0) * 5) }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, ...T(21, 600, C.ink) }}><Num n={4} />Confirmation</div>
+                <div style={{ ...T(16, 400, C.sub), marginTop: 14, maxWidth: 560 }}>You're depositing <b style={{ color: C.ink }}>$500.00</b> via Crypto Wallet into your ABET wallet.</div>
+                <div style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}><Continue label="Confirm Deposit" press={st.confirmPress} morph={st.morph} /></div>
+              </div>
+              {(st.success ?? 0) > 0 && <div style={{ position: "absolute", inset: 0 }}><Success t={st.success ?? 0} /></div>}
             </div>
           )}
         </div>

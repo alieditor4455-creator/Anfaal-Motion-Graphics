@@ -45,7 +45,7 @@ export const SHEET_H = 1120 + 4 * (FH + 190) + 120;
 
 export const DesignSheet: React.FC = () => {
   const [h] = useState(() => delayRender("fonts"));
-  useEffect(() => { fontsLoaded.then(() => document.fonts.ready).then(() => continueRender(h)); }, [h]);
+  useEffect(() => { let done = false; const fin = () => { if (!done) { done = true; continueRender(h); } }; Promise.race([fontsLoaded.then(() => document.fonts.ready), new Promise((r) => setTimeout(r, 6000))]).then(fin, fin); }, [h]);
   return (
     <div style={{ width: SHEET_W, height: SHEET_H, background: "#F3F4F7", fontFamily: FONT, position: "relative" }}>
       {/* Header */}
@@ -121,7 +121,7 @@ export const DesignSheet: React.FC = () => {
 
 export const AbetFrame: React.FC<{ i: number }> = ({ i }) => {
   const [h] = useState(() => delayRender("fonts"));
-  useEffect(() => { fontsLoaded.then(() => document.fonts.ready).then(() => continueRender(h)); }, [h]);
+  useEffect(() => { let done = false; const fin = () => { if (!done) { done = true; continueRender(h); } }; Promise.race([fontsLoaded.then(() => document.fonts.ready), new Promise((r) => setTimeout(r, 6000))]).then(fin, fin); }, [h]);
   const F = FRAMES[i];
   return <F />;
 };
