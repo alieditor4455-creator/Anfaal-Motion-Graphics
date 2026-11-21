@@ -103,28 +103,38 @@ const SceneLogo: React.FC<{ t: number }> = ({ t }) => {
   );
 };
 
-// ---------------- Scene 1: what is ABET ----------------
+// ---------------- Scene 1: what is ABET (3D exploded UI stack) ----------------
+const glassD = (accent: number): React.CSSProperties => ({
+  position: "absolute", borderRadius: 22, fontFamily: FONT, color: "#fff",
+  background: "linear-gradient(150deg, rgba(46,54,76,0.92) 0%, rgba(24,30,46,0.94) 100%)",
+  border: `1px solid rgba(255,255,255,${0.12 + 0.1 * accent})`,
+  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.18), 0 30px 60px -20px rgba(0,0,0,0.7), 0 0 ${50 * accent}px -10px rgba(226,70,76,${0.55 * accent})`,
+});
+const Bar: React.FC<{ w: number; o?: number; mt?: number }> = ({ w, o = 0.12, mt = 12 }) => <div style={{ width: w, height: 10, borderRadius: 6, background: `rgba(255,255,255,${o})`, marginTop: mt }} />;
+
+// a layer of the stack: lifts in z and slides outward when its feature is named
+type Lay = { x: number; y: number; w: number; h: number; at: number; out: [number, number] };
+const STACK_W = 1000;
+const STACK_H = 620;
 const SceneWhat: React.FC<{ t: number }> = ({ t }) => {
   const OUT = 6.2;
-  const rise = k(t, 6.3, 7.35, EO);
-  const push = k(t, 7.3, 11.1, EIO);
-  const hitIn = k(t, 10.95, 11.35, EIO); // laptop recedes for the word hit
-  const card = (at: number, from: [number, number], tilt: number, ph: number) => {
-    const p = k(t, at - 0.05, at + 0.6, SNAP);
-    return {
-      style: { opacity: Math.min(1, p * 2.5) * (1 - hitIn), transform: `translate3d(${(1 - p) * from[0]}px, ${(1 - p) * from[1] + Math.sin(t * 1.2 + ph) * 5}px, 0) scale(${mix(0.75, 1, p)})` } as React.CSSProperties,
-      rx: mix(16, 4, p) + Math.sin(t * 0.8 + ph) * 1.2,
-      ry: tilt * mix(1.7, 1, p) + Math.cos(t * 0.7 + ph) * 1.5,
-      sheen: mix(-0.3, 1.2, k(t, at + 0.1, at + 1.1, EIO)),
-    };
-  };
-  const wa = card(wt(2, 1), [520, 80], 16, 0);
-  const ac = card(wt(2, 3), [420, -140], 14, 1.3);
-  const so = card(wt(2, 4), [-440, -40], -16, 2.1);
-  const ca = card(wt(2, 8), [-440, 160], -14, 3.4);
+  const intro = k(t, 6.5, 7.6, EO); // stack swings into isometric (after the headline has cleared)
+  const collapse = k(t, 10.75, 11.3, EIO); // "All in one place": layers snap back, stack flattens
+  const away = k(t, 11.05, 11.5, EIO);
+  const L: Lay[] = [
+    { x: 60, y: 70, w: 400, h: 220, at: wt(2, 1), out: [-150, -60] }, // wallet
+    { x: 60, y: 330, w: 330, h: 120, at: wt(2, 3), out: [-170, 90] }, // accounts
+    { x: 520, y: 360, w: 420, h: 200, at: wt(2, 4), out: [160, 90] }, // social
+    { x: 520, y: 70, w: 420, h: 250, at: wt(2, 8), out: [160, -70] }, // calendar
+  ];
+  // the most recently named layer carries the only crimson in the frame
+  const lastIdx = L.reduce((acc, l, i) => (t >= l.at - 0.05 ? i : acc), -1);
+  const lift = (l: Lay) => k(t, l.at - 0.08, l.at + 0.55, SNAP) * (1 - collapse);
+  const rx = mix(70, 52, intro) * (1 - collapse) + Math.sin(t * 0.5) * 1.5 * (1 - collapse);
+  const rz = mix(-58, -34, intro) * (1 - collapse) + (t - 7) * 0.9 * (1 - collapse);
+  const s = mix(0.7, 1, intro) * mix(1, 0.62, collapse);
   return (
     <AbsoluteFill>
-      {/* opening headline: masked line reveals + inline icon chip */}
       {t < 6.9 && (
         <div style={{ position: "absolute", top: 330, width: W, textAlign: "center" }}>
           <div style={display(104, "#fff")}>
@@ -141,19 +151,57 @@ const SceneWhat: React.FC<{ t: number }> = ({ t }) => {
           </div>
         </div>
       )}
-      {/* laptop + glass feature cards */}
-      {t > 6.25 && (
-        <AbsoluteFill style={{ transform: `scale(${mix(1, 0.9, hitIn)})`, opacity: 1 - 0.75 * hitIn, filter: hitIn > 0 ? `blur(${hitIn * 8}px)` : undefined }}>
-          <div style={{ position: "absolute", inset: 0, opacity: k(t, 6.3, 6.8, EIO) }}>
-            <MacImg src="dash" x={W / 2} y={mix(1060, 760, rise) - 14 * push} scale={0.44 + 0.03 * push} rx={mix(-30, -14, rise)} ry={mix(-34, -14, rise) + 6 * push} lid={16} rim={0.9} />
+      {t > 6.45 && (
+        <AbsoluteFill style={{ perspective: 2600, perspectiveOrigin: "50% 40%", opacity: k(t, 6.5, 6.95, EIO) * (1 - 0.8 * away), filter: away > 0 ? `blur(${away * 8}px)` : undefined }}>
+          <div style={{ position: "absolute", left: 960 - STACK_W / 2, top: 560 - STACK_H / 2, width: STACK_W, height: STACK_H, transformStyle: "preserve-3d", transform: `translate3d(0, ${mix(160, 0, intro)}px, 0) scale(${s}) rotateX(${rx}deg) rotateZ(${rz}deg)` }}>
+            {/* soft shadow on the "floor" */}
+            <div style={{ position: "absolute", inset: -60, borderRadius: 60, background: "rgba(0,0,0,0.55)", filter: "blur(40px)", transform: "translateZ(-40px)" }} />
+            {/* base: the portal itself */}
+            <div style={{ ...glassD(0), inset: 0, padding: 34 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <AbetLogo width={110} />
+                <div style={{ flex: 1 }} />
+                <div style={{ padding: "6px 14px", borderRadius: 99, background: "rgba(34,197,94,0.16)", color: "#4ADE80", fontSize: 15, fontWeight: 500 }}>Verified</div>
+              </div>
+              <div style={{ position: "absolute", left: 34, right: 34, top: 96, bottom: 34, borderRadius: 16, border: "1px dashed rgba(255,255,255,0.1)" }} />
+            </div>
+            {L.map((l, i) => {
+              const p = lift(l);
+              const acc = i === lastIdx ? bell(t, l.at - 0.05, l.at + 0.3, 10.6, 10.9) : 0;
+              return (
+                <div key={i} style={{ ...glassD(acc), left: l.x, top: l.y, width: l.w, height: l.h, padding: 24, transform: `translate3d(${l.out[0] * p}px, ${l.out[1] * p}px, ${4 + p * (110 + i * 26)}px)`, opacity: k(t, 6.75 + i * 0.08, 7.3 + i * 0.08, EIO) }}>
+                  {i === 0 && (<>
+                    <div style={{ fontSize: 15, letterSpacing: "0.12em", color: "rgba(255,255,255,0.6)" }}>WALLET BALANCE</div>
+                    <div style={{ fontSize: 50, fontWeight: 600, letterSpacing: "-0.03em", marginTop: 10 }}>$4,250<span style={{ color: "rgba(255,255,255,0.4)" }}>.00</span></div>
+                    <svg width="352" height="56" viewBox="0 0 352 56" style={{ marginTop: 10 }}><path d="M0 46 C40 40 66 50 96 36 S154 30 186 22 S246 28 276 12 S330 6 352 4" stroke={acc > 0.05 ? "#FF6A62" : "rgba(255,255,255,0.45)"} strokeWidth="3" fill="none" /></svg>
+                  </>)}
+                  {i === 1 && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 14, height: "100%" }}>
+                      <div style={{ width: 46, height: 46, borderRadius: 13, background: "rgba(34,197,94,0.16)", display: "grid", placeItems: "center" }}><Icon name="shieldCheck" size={22} color="#4ADE80" /></div>
+                      <div><div style={{ fontSize: 15, color: "rgba(255,255,255,0.6)" }}>Real accounts</div><div style={{ fontSize: 30, fontWeight: 600 }}>2</div></div>
+                    </div>
+                  )}
+                  {i === 2 && (<>
+                    <div style={{ display: "flex" }}>{["#E2464C", "#6366F1", "#F59E0B", "#22C55E"].map((c, j) => <div key={c} style={{ width: 48, height: 48, borderRadius: 99, marginLeft: j ? -12 : 0, border: "2.5px solid #1E2536", background: `linear-gradient(140deg, ${c}, ${c}AA)`, display: "grid", placeItems: "center" }}><Icon name="user" size={20} color="#fff" /></div>)}</div>
+                    <div style={{ fontSize: 22, fontWeight: 600, marginTop: 16 }}>Social Trading</div>
+                    <div style={{ fontSize: 16, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>Following 6 traders</div>
+                  </>)}
+                  {i === 3 && (<>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 20, fontWeight: 600 }}><Icon name="calendar" size={20} color={acc > 0.05 ? "#FF6A62" : "rgba(255,255,255,0.7)"} />Economic Calendar</div>
+                    {[["USD", "Non-Farm Payrolls", 3], ["EUR", "CPI (YoY)", 2], ["GBP", "Rate Decision", 3]].map(([c, e, n]) => (
+                      <div key={e as string} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                        <div style={{ width: 46, textAlign: "center", padding: "3px 0", borderRadius: 7, background: "rgba(255,255,255,0.08)", fontSize: 12, fontWeight: 600 }}>{c}</div>
+                        <div style={{ flex: 1, fontSize: 15, color: "rgba(255,255,255,0.85)" }}>{e}</div>
+                        <div style={{ display: "flex", gap: 3 }}>{[0, 1, 2].map((d) => <span key={d} style={{ width: 6, height: 13, borderRadius: 3, background: d < (n as number) ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.15)" }} />)}</div>
+                      </div>
+                    ))}
+                  </>)}
+                </div>
+              );
+            })}
           </div>
-          <Glass dark rx={ca.rx} ry={ca.ry} sheen={ca.sheen} style={{ left: 1430, top: 270, ...ca.style }}><CalendarG /></Glass>
-          <Glass dark rx={wa.rx} ry={wa.ry} sheen={wa.sheen} style={{ left: 130, top: 330, ...wa.style }}><WalletG /></Glass>
-          <Glass dark rx={ac.rx} ry={ac.ry} sheen={ac.sheen} radius={20} style={{ left: 220, top: 690, ...ac.style }}><AccountsG /></Glass>
-          <Glass dark rx={so.rx} ry={so.ry} sheen={so.sheen} style={{ left: 1460, top: 620, ...so.style }}><SocialG /></Glass>
         </AbsoluteFill>
       )}
-      {/* full-screen word hit */}
       {t > 11.0 && (
         <AbsoluteFill style={{ display: "grid", placeItems: "center" }}>
           <div style={display(150, "#fff", 600)}>
@@ -309,7 +357,7 @@ function cursor(t: number) {
   const crypto = toStage(165, 280);
   const cont = toStage(450, 530);
   const K: [number, number, number][] = [
-    [23.75, 1520, 980], [24.45, 1060, 548], [24.8, 1075, 560],
+    [23.55, 1300, 980], [wt(7, 4) - 0.05, DEP_BTN.x + 20, DEP_BTN.y + 6], [wt(7, 4) + 0.5, DEP_BTN.x + 34, DEP_BTN.y + 20],
     [28.8, 900, 900], [29.4, crypto[0], crypto[1]], [29.6, crypto[0] + 10, crypto[1] + 8], [29.9, cont[0], cont[1]], [30.3, cont[0] + 30, cont[1] + 40],
     [32.5, 900, 980], [33.0, cont[0], cont[1]], [33.4, cont[0] + 30, cont[1] + 40],
     [34.5, 900, 980], [35.0, cont[0], cont[1]], [35.4, cont[0] + 10, cont[1] + 10], [35.6, cont[0], cont[1]], [36.0, cont[0] + 40, cont[1] + 60],
@@ -323,7 +371,7 @@ function cursor(t: number) {
     else if (t > tb) { x = xb; y = yb; }
   }
   const vis = (a: number, b: number) => k(t, a, a + 0.25, EIO) * (1 - k(t, b, b + 0.25, EIO));
-  const o = Math.min(1, vis(23.75, 25.0) + vis(28.8, 30.4) + vis(32.5, 33.4) + vis(34.5, 36.1));
+  const o = Math.min(1, vis(23.55, wt(7, 4) + 0.45) + vis(28.8, 30.4) + vis(32.5, 33.4) + vis(34.5, 36.1));
   const rip = (c: number) => (t >= c && t <= c + 0.45 ? (t - c) / 0.45 : 0);
   const press = rip(wt(7, 4) + 0.05) || rip(29.45) || rip(29.95) || rip(33.05) || rip(35.05) || rip(wt(11, 0) + 0.05);
   return { x, y, o, press };
@@ -357,49 +405,76 @@ const MethodSwap: React.FC<{ t: number }> = ({ t }) => {
   );
 };
 
+const DEP_BTN = { x: 550 + 38 + 105, y: 540 - 165 + 330 - 30 - 32, w: 210, h: 64 }; // centre + size of the Deposit button
+// neutral glass tiles floating at different depths (background layer, parallax drift)
+const TILES: [number, number, number, number, string][] = [
+  [90, 110, 1, 0, "bitcoin"], [1660, 130, 0.72, 2.5, "card"], [1740, 860, 0.95, 0.5, "bank"], [110, 880, 0.7, 2.8, "shieldCheck"], [930, 70, 0.55, 3.5, "wallet"],
+];
+const DepthTiles: React.FC<{ t: number }> = ({ t }) => (
+  <>
+    {TILES.map(([x, y, s, b, ic], i) => {
+      const p = k(t, 22.8 + i * 0.08, 23.7 + i * 0.08, EO);
+      return (
+        <div key={i} style={{ position: "absolute", left: 0, top: 0, width: 104, height: 104, borderRadius: 30, background: "linear-gradient(160deg, #FFFFFF, rgba(255,255,255,0.82))", boxShadow: "inset 0 1px 0 #fff, 0 0 0 1px rgba(17,24,39,0.05), 0 24px 40px -18px rgba(17,24,39,0.25)", display: "grid", placeItems: "center", opacity: p * (0.55 + 0.45 * s), filter: b ? `blur(${b}px)` : undefined, transform: `translate3d(${x + Math.sin(t * 0.35 + i * 1.7) * 14 * s}px, ${y + Math.cos(t * 0.3 + i) * 10 * s + (1 - p) * 40}px, 0) scale(${s}) rotate(${Math.sin(t * 0.25 + i) * 4}deg)` }}>
+          <Icon name={ic} size={42} color={C.faint} sw={1.8} />
+        </div>
+      );
+    })}
+  </>
+);
+
 const SceneDeposit: React.FC<{ t: number }> = ({ t }) => {
-  const push = k(t, 22.9, 24.1, EIO);
-  const blur = 10 * k(t, 23.9, 24.6, EIO);
   const st = dep(t);
-  const lift = k(t, 23.95, 24.75, SNAP);
-  const morph = k(t, 24.95, 25.75, EIO);
-  const bp = k(t, wt(7, 4) + 0.05, wt(7, 4) + 0.13, EIO) * (1 - k(t, wt(7, 4) + 0.15, wt(7, 4) + 0.45, EIO));
-  // button centre -> card centre (left side)
+  const tap = wt(7, 4) + 0.05; // cursor taps "Deposit" on the spoken word
+  const dashIn = k(t, 22.75, 23.6, EO);
+  const recede = k(t, tap + 0.15, tap + 0.95, EIO); // the dashboard falls back in depth
+  const morph = k(t, tap + 0.3, tap + 1.1, EIO);
+  const bp = k(t, tap, tap + 0.08, EIO) * (1 - k(t, tap + 0.1, tap + 0.4, EIO));
+  // the real Deposit button inside the mini dashboard -> the deposit card on the left
   const cardC = [CX + (900 * CARD_S) / 2, 540];
-  const bx = mix(mix(820, W / 2, lift), cardC[0], morph);
-  const by = mix(mix(600, 520, lift), cardC[1], morph);
-  const bw = mix(440, 900 * CARD_S, morph);
-  const bh = mix(118, 590 * CARD_S, morph);
-  const ghosts = k(t, 24.1, 24.7) * (1 - k(t, 24.9, 25.25, EIO));
+  const bx = mix(DEP_BTN.x, cardC[0], morph);
+  const by = mix(DEP_BTN.y, cardC[1], morph);
+  const bw = mix(DEP_BTN.w, 900 * CARD_S, morph);
+  const bh = mix(DEP_BTN.h, 590 * CARD_S, morph);
+  const lift = 1 + 0.06 * bell(t, tap + 0.05, tap + 0.25, tap + 0.35, tap + 0.8);
   const cur = cursor(t);
-  const settle = k(t, 25.6, 26.5, EO);
+  const settle = k(t, tap + 1.0, tap + 2.0, EO);
   const crx = Math.sin(t * 0.7) * 1.2 * settle;
   const cry = mix(8, 0, settle) * morph + Math.cos(t * 0.55) * 1.8 * settle;
   const tx = k(t, 38.3, 39.0, SNAP);
   const flip = k(t, wt(12, 6) + 0.1, wt(12, 6) + 0.45, EIO);
   return (
     <AbsoluteFill>
-      <div style={{ position: "absolute", inset: 0, filter: `blur(${blur}px)`, opacity: 1 - 0.35 * k(t, 24.6, 25.6, EIO) }}>
-        <MacImg src="dash" x={W / 2} y={mix(780, 830, push)} scale={mix(0.44, 0.5, push)} rx={-14} ry={mix(-12, -15, push)} lid={16} />
-      </div>
-      {ghosts > 0 && (
-        <>
-          <Glass ry={14} style={{ left: 330 + (1 - ghosts) * 120, top: 472, opacity: 0.75 * ghosts, filter: "blur(4px)" }} inner={{ width: 300, height: 96, display: "grid", placeItems: "center", fontSize: 30, color: C.red }}>Withdrawal</Glass>
-          <Glass ry={-14} style={{ left: 1290 - (1 - ghosts) * 120, top: 472, opacity: 0.75 * ghosts, filter: "blur(4px)" }} inner={{ width: 300, height: 96, display: "grid", placeItems: "center", fontSize: 30, color: C.red }}>Transfer</Glass>
-        </>
+      <DepthTiles t={t} />
+      {/* compact glass dashboard: balance + actions */}
+      {recede < 1 && (
+        <div style={{ position: "absolute", left: 960 - 410, top: 540 - 165, width: 820, height: 330, borderRadius: 30, padding: "30px 38px", fontFamily: FONT, background: "linear-gradient(165deg, #FFFFFF 0%, rgba(255,255,255,0.9) 100%)", boxShadow: "inset 0 1px 0 #fff, 0 0 0 1px rgba(17,24,39,0.06), 0 30px 60px -24px rgba(17,24,39,0.22), 0 80px 140px -50px rgba(17,24,39,0.25)", opacity: Math.min(1, dashIn * 1.5) * (1 - recede), transform: `translateY(${(1 - dashIn) * 40}px) scale(${mix(0.96, 1, dashIn) * mix(1, 0.9, recede)})`, filter: recede > 0 ? `blur(${recede * 10}px)` : undefined }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <AbetLogo width={92} ink={C.ink} />
+            <div style={{ flex: 1 }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 99, background: C.greenSoft, color: C.green, fontSize: 15, fontWeight: 500 }}><Icon name="shieldCheck" size={15} color={C.green} />Verified</div>
+          </div>
+          <div style={{ fontSize: 15, letterSpacing: "0.12em", color: C.sub, marginTop: 22 }}>WALLET BALANCE</div>
+          <div style={{ fontSize: 56, fontWeight: 600, letterSpacing: "-0.035em", color: C.ink, marginTop: 4 }}>$4,250<span style={{ color: C.faint }}>.00</span></div>
+          <div style={{ position: "absolute", left: 38 + DEP_BTN.w + 14, top: DEP_BTN.y - (540 - 165) - DEP_BTN.h / 2, display: "flex", gap: 14 }}>
+            {[["upload", "Withdraw"], ["swap", "Transfer"]].map(([ic, l]) => (
+              <div key={l} style={{ width: 190, height: DEP_BTN.h, borderRadius: 16, border: `1px solid ${C.line}`, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 19, fontWeight: 500, color: C.text }}><Icon name={ic} size={18} color={C.sub} />{l}</div>
+            ))}
+          </div>
+        </div>
       )}
-      {t >= 23.95 && (
-        <div style={{ position: "absolute", left: 0, top: 0, width: bw, height: bh, perspective: 1600, willChange: "transform", opacity: k(t, 23.95, 24.4, EIO), transform: `translate3d(${bx - bw / 2}px, ${by - bh / 2}px, 0) scale(${mix(0.4, 1, lift) * (1 - bp * 0.05)})` }}>
+      {t >= 22.75 && (
+        <div style={{ position: "absolute", left: 0, top: 0, width: bw, height: bh, perspective: 1600, willChange: "transform", opacity: Math.min(1, dashIn * 1.5), transform: `translate3d(${bx - bw / 2}px, ${by - bh / 2 + (1 - dashIn) * 40}px, 0) scale(${lift * (1 - bp * 0.05)})` }}>
           <div style={{ position: "absolute", inset: 0, transform: `rotateX(${crx}deg) rotateY(${cry}deg)` }}>
-            <div style={{ position: "absolute", inset: 0, borderRadius: mix(30, 26, morph), overflow: "hidden", background: "linear-gradient(165deg, #FFFFFF 0%, #FBFBFC 100%)", boxShadow: `inset 0 1px 0 #fff, 0 0 0 1px rgba(17,24,39,${0.06 * morph}), 0 30px 60px -24px rgba(17,24,39,${0.22 * morph}), 0 80px 140px -50px rgba(179,36,42,${0.35 * morph})` }}>
+            <div style={{ position: "absolute", inset: 0, borderRadius: mix(16, 26, morph), overflow: "hidden", background: "linear-gradient(165deg, #FFFFFF 0%, #FBFBFC 100%)", boxShadow: `inset 0 1px 0 #fff, 0 0 0 1px rgba(17,24,39,${0.06 * morph}), 0 30px 60px -24px rgba(17,24,39,${0.22 * morph}), 0 80px 140px -50px rgba(179,36,42,${0.35 * morph})` }}>
               {morph > 0.35 && (
-                <div style={{ position: "absolute", left: (bw - 900 * CARD_S) / 2, top: (bh - 590 * CARD_S) / 2, width: 900, height: 590, transform: `scale(${CARD_S})`, transformOrigin: "0 0", opacity: k(t, 25.45, 25.85, EIO) }}>
+                <div style={{ position: "absolute", left: (bw - 900 * CARD_S) / 2, top: (bh - 590 * CARD_S) / 2, width: 900, height: 590, transform: `scale(${CARD_S})`, transformOrigin: "0 0", opacity: k(t, tap + 0.85, tap + 1.25, EIO) }}>
                   <DepositCard {...st} h={590} style={{ border: "none", boxShadow: "none", background: "transparent" }} />
                 </div>
               )}
             </div>
-            <div style={{ position: "absolute", inset: 0, opacity: 1 - k(t, 25.3, 25.65, EIO) }}>
-              <BigButton glow={1 - morph} style={{ left: 0, top: 0, width: bw, height: bh, borderRadius: mix(30, 26, morph), fontSize: 40, color: `rgba(255,255,255,${1 - k(t, 24.95, 25.12, EIO)})` }} />
+            <div style={{ position: "absolute", inset: 0, opacity: 1 - k(t, tap + 0.7, tap + 1.05, EIO) }}>
+              <BigButton glow={0} style={{ left: 0, top: 0, width: bw, height: bh, borderRadius: mix(16, 26, morph), fontSize: 21, gap: 8, color: `rgba(255,255,255,${1 - k(t, tap + 0.3, tap + 0.45, EIO)})` }} />
             </div>
           </div>
         </div>
@@ -446,7 +521,7 @@ const SceneDeposit: React.FC<{ t: number }> = ({ t }) => {
       )}
       {cur.o > 0 && (
         <div style={{ position: "absolute", inset: 0, opacity: cur.o }}>
-          <Cursor x={cur.x} y={cur.y} press={cur.press} scale={t < 25 ? 1.6 : 1.2} />
+          <Cursor x={cur.x} y={cur.y} press={cur.press} scale={1.2} />
         </div>
       )}
     </AbsoluteFill>
