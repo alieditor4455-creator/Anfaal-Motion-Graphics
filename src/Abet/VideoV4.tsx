@@ -280,10 +280,10 @@ const MASK_T0 = 22.5;
 const MASK_T1 = 23.2;
 const SceneAsk: React.FC<{ t: number; asMask?: boolean }> = ({ t }) => {
   const p = k(t, wt(6, 4) - 0.04, wt(6, 4) + 0.32, SNAP);
-  const knock = k(t, 22.3, 22.5, EIO); // word turns from white ink into a window
-  const z = k(t, MASK_T0, MASK_T1, ACC);
+  const knock = 0; // scene change is handled by the mosaic transition
+  const z = 0;
   const s = 1 + z * 46;
-  const top1 = 1 - k(t, 22.25, 22.5, EIO);
+  const top1 = 1;
   return (
     <AbsoluteFill>
       <svg width={1920} height={1080} style={{ position: "absolute", inset: 0 }}>
@@ -606,68 +606,91 @@ const Caps: React.FC<{ t: number }> = ({ t }) => (
 );
 
 // ---------------- root ----------------
+// ---------------- signature transition: gradient mosaic pixel reveal ----------------
+// Rounded tiles cascade in a wave until they cover the frame (scene swaps at tm, fully hidden),
+// then dissolve in the same wave direction to reveal the next scene.
+type Dir = "diag" | "rdiag" | "ltr" | "radial";
+const TILE = 96;
+const COLS = 20;
+const ROWS = 12;
+const OX = (1920 - COLS * TILE) / 2;
+const OY = (1080 - ROWS * TILE) / 2;
+const hex = (h: string) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+const GRAD = ["#D0343A", "#9E1A20", "#5A0E1A", "#141B2D"].map(hex);
+const gradAt = (u: number) => {
+  const x = Math.max(0, Math.min(0.9999, u)) * (GRAD.length - 1);
+  const i = Math.floor(x);
+  const f = x - i;
+  return GRAD[i].map((c, j) => Math.round(mix(c, GRAD[i + 1][j], f)));
+};
+const Mosaic: React.FC<{ t: number; tm: number; dir: Dir; hue?: number }> = ({ t, tm, dir, hue = 0 }) => {
+  const SPREAD = 0.42; // wave travel time across the frame
+  const DUR = 0.24; // each tile's own animation
+  const a = tm - 0.12 - SPREAD - DUR;
+  const b = tm + 0.12 + SPREAD + DUR;
+  if (t < a || t > b) return null;
+  const tiles: React.ReactNode[] = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cx = (c + 0.5) / COLS;
+      const cy = (r + 0.5) / ROWS;
+      const d = dir === "diag" ? (cx + cy) / 2 : dir === "rdiag" ? 1 - (cx + cy) / 2 : dir === "ltr" ? cx * 0.85 + cy * 0.15 : Math.min(1, Math.hypot(cx - 0.5, (cy - 0.5) * 0.6) * 1.6);
+      const jitter = (((c * 73856093) ^ (r * 19349663)) % 1000) / 1000 * 0.06; // tiny per-tile offset, deterministic
+      const pin = k(t, tm - 0.12 - SPREAD - DUR + d * SPREAD + jitter, tm - 0.12 - SPREAD + d * SPREAD + jitter, SNAP);
+      const pout = k(t, tm + 0.12 + d * SPREAD + jitter, tm + 0.12 + d * SPREAD + DUR + jitter, Easing.bezier(0.6, 0, 0.8, 0.3));
+      const sc = 1.22 * pin * (1 - pout); // 1.22 closes the corner gaps where four rounded tiles meet
+      if (sc <= 0.001) continue;
+      const base = Math.min(1, (cx * 0.7 + cy * 0.3) * (1 - hue) + hue);
+      const col = gradAt(base);
+      const hi = gradAt(Math.max(0, base - 0.12));
+      tiles.push(
+        <div key={r * COLS + c} style={{ position: "absolute", left: OX + c * TILE, top: OY + r * TILE, width: TILE, height: TILE, borderRadius: 16, transform: `scale(${sc}) rotate(${(1 - pin) * 35 - pout * 20}deg)`, background: `linear-gradient(145deg, rgb(${hi.join(",")}) 0%, rgb(${col.join(",")}) 70%)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22)" }} />,
+      );
+    }
+  }
+  return <AbsoluteFill style={{ zIndex: 70 }}>{tiles}</AbsoluteFill>;
+};
+
+// scene-change times (each is the moment the frame is fully covered)
+const SC = { what: 2.85, how: 13.05, ask: 20.7, dep: 22.75, outro: 41.4 };
+
 export const AbetVideoV4: React.FC = () => {
   const [h] = useState(() => delayRender("fonts"));
   useEffect(() => { let d = false; const fin = () => { if (!d) { d = true; continueRender(h); } }; Promise.race([fontsLoaded.then(() => document.fonts.ready), new Promise((r) => setTimeout(r, 6000))]).then(fin, fin); }, [h]);
   const f = useCurrentFrame();
   const t = f / V4_FPS;
-  const T1 = 2.85;
-  const u = whipU(t);
-  const whipping = t >= WHIP_A && t <= WHIP_B;
-  const m = k(t, MORPH_A, MORPH_B, EIO);
-  // chip (scene 2) -> full frame
-  const mw = mix(140, 2300, m);
-  const mh = mix(140, 1400, m);
-  const mx = mix(CHIP_X, 960, m);
-  const my = mix(CHIP_Y, 540, m);
-  // outro circle
-  const r1 = k(t, OUT_A, OUT_A + 0.7, EIO) * 2300;
-  const r2 = k(t, OUT_A + 0.15, OUT_A + 0.85, EIO) * 2300;
   return (
     <AbsoluteFill style={{ background: C.navy, fontFamily: FONT, overflow: "hidden" }}>
-      <WhipDefs t={t} />
-      {/* dark world: logo + what is ABET */}
-      {t < WHIP_B && (
-        <AbsoluteFill style={{ transform: whipping ? `translate3d(${-1920 * u}px,0,0)` : undefined, filter: whipping ? "url(#whip)" : undefined }}>
-          <BgDark t={f} glow={0.35 + 0.65 * k(t, 0, 0.8, EIO)} by={t < T1 ? 520 : 620} />
-          {t < T1 && <SceneLogo t={t} />}
-          {t >= T1 && <SceneWhat t={t} />}
+      {t < SC.how && (
+        <AbsoluteFill>
+          <BgDark t={f} glow={0.35 + 0.65 * k(t, 0, 0.8, EIO)} by={t < SC.what ? 520 : 620} />
+          {t < SC.what ? <SceneLogo t={t} /> : <SceneWhat t={t} />}
         </AbsoluteFill>
       )}
-      {/* light world: how it works */}
-      {t >= WHIP_A && t < MORPH_B && (
-        <AbsoluteFill style={{ transform: whipping ? `translate3d(${1920 * (1 - u)}px,0,0)` : undefined, filter: whipping ? "url(#whip)" : undefined }}>
+      {t >= SC.how && t < SC.ask && (
+        <AbsoluteFill>
           <BgLight t={f} />
           <SceneHow t={t} />
         </AbsoluteFill>
       )}
-      {/* light world: deposit (revealed through the "deposit?" letters) */}
-      {t >= MASK_T0 - 0.3 && t < OUT_A + 0.9 && (
+      {t >= SC.ask && t < SC.dep && <SceneAsk t={t} />}
+      {t >= SC.dep && t < SC.outro && (
         <AbsoluteFill>
           <BgLight t={f} />
           <SceneDeposit t={t} />
         </AbsoluteFill>
       )}
-      {/* crimson world: the chip grows into it, then "deposit?" opens a window into the next scene */}
-      {t >= MORPH_A && t < MASK_T1 && (
-        <>
-          {t < MORPH_B + 0.05 && (
-            <div style={{ position: "absolute", left: mx - mw / 2, top: my - mh / 2, width: mw, height: mh, borderRadius: mix(38, 0, m), background: "linear-gradient(140deg, #C8303A, #7E0E14)", boxShadow: "0 26px 50px -16px rgba(179,36,42,0.6)" }} />
-          )}
-          {t >= MORPH_B - 0.1 && <SceneAsk t={t} />}
-        </>
+      {t >= SC.outro && (
+        <AbsoluteFill>
+          <BgDark t={f} glow={1} by={520} />
+          <SceneOutro t={t} />
+        </AbsoluteFill>
       )}
-      {/* outro: crimson ring leads, navy follows from the success check */}
-      {t >= OUT_A && (
-        <>
-          <AbsoluteFill style={{ background: "linear-gradient(140deg, #C8303A, #7E0E14)", clipPath: `circle(${Math.max(58, r1)}px at ${SUCCESS_C[0]}px ${SUCCESS_C[1]}px)`, opacity: k(t, OUT_A, OUT_A + 0.12, EIO) }} />
-          <AbsoluteFill style={{ clipPath: `circle(${r2}px at ${SUCCESS_C[0]}px ${SUCCESS_C[1]}px)` }}>
-            <BgDark t={f} glow={1} by={520} />
-            {t > OUT_A + 0.5 && <SceneOutro t={t} />}
-          </AbsoluteFill>
-        </>
-      )}
-      <GlassWipe t={t} tm={T1} />
+      <Mosaic t={t} tm={SC.what} dir="diag" />
+      <Mosaic t={t} tm={SC.how} dir="ltr" hue={0.15} />
+      <Mosaic t={t} tm={SC.ask} dir="radial" />
+      <Mosaic t={t} tm={SC.dep} dir="rdiag" hue={0.1} />
+      <Mosaic t={t} tm={SC.outro} dir="diag" hue={0.2} />
       <Caps t={t} />
     </AbsoluteFill>
   );

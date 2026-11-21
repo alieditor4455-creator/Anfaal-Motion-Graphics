@@ -189,8 +189,8 @@ for c in (wt(7, 4) + 0.05, 29.45, 29.95, 33.05, 35.05, wt(11, 0) + 0.05):
 for i in range(7):
     add(click(3200 + 200 * (i % 3), 0.03), 31.1 + i * (0.65 / 7), 0.07, 0.5, sfx)
 add(chime(), 36.25, 0.1, 0.5, sfx)
-add(air(), 2.35, 0.04, 0.5, sfx)
-add(air(0.6), 12.75, 0.045, 0.5, sfx)
+for tm_ in (2.85, 13.05, 20.7, 22.75, 41.4):  # soft shimmer under each mosaic wave
+    add(air(0.9), tm_ - 0.75, 0.035, 0.5, sfx)
 sfx = np.stack([reverb(sfx[0], 1.2, 0.2), reverb(sfx[1], 1.2, 0.2)])
 
 # ---------- VO ----------
