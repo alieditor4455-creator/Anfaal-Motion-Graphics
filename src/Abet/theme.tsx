@@ -143,23 +143,42 @@ export const AbetLogo: React.FC<{ width: number; ink?: string; state?: LogoState
 // ---------- Backgrounds ----------
 const GRAIN = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")`;
 
+// Soft misty ridge shapes (like an out-of-focus landscape) for the bottom of the frame
+const Haze: React.FC<{ t: number; colors: string[]; opacity?: number; top?: number }> = ({ t, colors, opacity = 1, top = 640 }) => (
+  <svg width={1920} height={1080} viewBox="0 0 1920 1080" style={{ position: "absolute", left: 0, top: 0, opacity }}>
+    <defs>
+      <filter id="hz" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="38" /></filter>
+    </defs>
+    <g filter="url(#hz)">
+      {colors.map((c, i) => {
+        const o = (t / (140 + i * 40)) * (i % 2 ? -1 : 1);
+        const y0 = top + i * 70;
+        const pts = Array.from({ length: 9 }, (_, k) => {
+          const x = -200 + k * 290;
+          const y = y0 + Math.sin(k * 1.7 + i * 2.1 + o) * (60 - i * 8) + Math.cos(k * 0.9 + i) * 30;
+          return `${x},${y}`;
+        });
+        return <polygon key={i} points={`-300,1300 ${pts.join(" ")} 2300,1300`} fill={c} />;
+      })}
+    </g>
+  </svg>
+);
+
 export const BgDark: React.FC<{ t?: number; glow?: number }> = ({ t = 0, glow = 1 }) => (
-  <div style={{ position: "absolute", inset: 0, background: C.navy, overflow: "hidden" }}>
-    <div style={{ position: "absolute", width: 1400, height: 1400, left: 1100 + Math.sin(t / 90) * 60, top: 420 + Math.cos(t / 110) * 40, borderRadius: "50%", background: `radial-gradient(circle, rgba(179,36,42,${0.34 * glow}) 0%, rgba(179,36,42,0) 62%)` }} />
-    <div style={{ position: "absolute", width: 1500, height: 1500, left: -560 + Math.cos(t / 120) * 50, top: -820, borderRadius: "50%", background: "radial-gradient(circle, rgba(52,76,140,0.30) 0%, rgba(52,76,140,0) 60%)" }} />
-    <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(255,255,255,0.07) 1.2px, transparent 1.3px)", backgroundSize: "36px 36px", WebkitMaskImage: "radial-gradient(ellipse 60% 55% at 50% 50%, #000 10%, transparent 75%)" }} />
-    <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, opacity: 0.05, mixBlendMode: "overlay" }} />
-    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 80% 80% at 50% 50%, transparent 50%, rgba(0,0,0,0.45) 100%)" }} />
+  <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 70% 60% at 50% 38%, #141c2e 0%, ${C.navy} 70%)`, overflow: "hidden" }}>
+    <div style={{ position: "absolute", width: 1500, height: 900, left: 210 + Math.sin(t / 100) * 40, top: -520, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(120,140,200,0.16) 0%, rgba(120,140,200,0) 65%)" }} />
+    <Haze t={t} top={760} opacity={glow} colors={["rgba(120,22,32,0.55)", "rgba(179,36,42,0.38)", "rgba(60,14,24,0.75)"]} />
+    <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, opacity: 0.06, mixBlendMode: "overlay" }} />
+    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 85% 85% at 50% 45%, transparent 55%, rgba(0,0,0,0.5) 100%)" }} />
   </div>
 );
 
 export const BgLight: React.FC<{ t?: number }> = ({ t = 0 }) => (
-  <div style={{ position: "absolute", inset: 0, background: C.bg, overflow: "hidden" }}>
-    <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(17,24,39,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(17,24,39,0.045) 1px, transparent 1px)", backgroundSize: "80px 80px", backgroundPosition: "-1px -1px", WebkitMaskImage: "radial-gradient(ellipse 55% 50% at 50% 40%, #000 0%, transparent 80%)" }} />
-    <div style={{ position: "absolute", width: 1300, height: 700, left: -260 + Math.sin(t / 100) * 70, top: 760, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(240,160,168,0.55) 0%, rgba(240,160,168,0) 65%)", filter: "blur(30px)" }} />
-    <div style={{ position: "absolute", width: 1200, height: 650, left: 980 + Math.cos(t / 120) * 70, top: 800, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(252,206,186,0.55) 0%, rgba(252,206,186,0) 65%)", filter: "blur(30px)" }} />
-    <div style={{ position: "absolute", width: 900, height: 500, left: 1300, top: -300, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(226,214,250,0.5) 0%, rgba(226,214,250,0) 65%)", filter: "blur(30px)" }} />
-    <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, opacity: 0.08, mixBlendMode: "soft-light" }} />
+  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #FFFFFF 0%, #FBF8F8 55%, #F8EFEF 100%)", overflow: "hidden" }}>
+    <div style={{ position: "absolute", width: 1100, height: 600, left: 1250, top: -330, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(255,214,200,0.55) 0%, rgba(255,214,200,0) 65%)" }} />
+    <div style={{ position: "absolute", width: 900, height: 500, left: -300, top: -250, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(236,222,252,0.55) 0%, rgba(236,222,252,0) 65%)" }} />
+    <Haze t={t} top={800} colors={["rgba(246,190,196,0.75)", "rgba(252,214,200,0.8)", "rgba(240,170,180,0.65)"]} />
+    <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, opacity: 0.07, mixBlendMode: "soft-light" }} />
   </div>
 );
 

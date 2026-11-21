@@ -11,14 +11,14 @@ const GAP = 80;
 const MX = (SHEET_W - 2 * FW - GAP) / 2;
 
 const META: [string, string, string, string][] = [
-  ["01", "Logo intro", "0:00 – 0:05 · dark", "Letters rise out of a mask (expo-out, 4f stagger) → bull charges into the A, bear rises in the T → red line draws from centre, tagline tracks in."],
-  ["02", "What is ABET", "0:05 – 0:15 · dark", "Space Black MacBook rises and orbits from a steep angle into a 3/4 view while the lid opens. Camera glides to each feature; glass callouts pop with soft overshoot."],
-  ["03", "How it works", "0:15 – 0:26 · light", "Dashboard card morphs to full-frame (radius 24 → 0) and becomes the light world. Cards lift on each VO beat; icons draw on; progress line fills."],
-  ["04", "Deposit · Step 1", "0:30 – 0:39 · light", "The 'Fund' card morphs into the Deposit pill, then the MacBook slides in at 3/4. Cursor glides on a bezier path inside the screen; cards ring as named."],
-  ["05", "Deposit · Step 2", "0:39 – 0:43 · light", "The MacBook turns to face the camera as we push into the screen. Stepper number morphs into a check; amount types in; summary counts up live."],
-  ["06", "Deposit · Step 3", "0:43 – 0:48 · light", "Camera pushes into the review card; each row ticks in sequence on 'double-check every detail'."],
-  ["07", "Deposit · Step 4", "0:48 – 0:56 · light", "Confirm morphs pill → spinner → success check. Camera pulls back to the 3/4 MacBook; a transactions card floats out of the screen and the row flips Pending → Approved."],
-  ["08", "Outro", "0:56 – 1:05 · dark", "Crimson circle wipe back to navy. Logo rebuilds, tagline reveals, CTA pills spring in; risk line sits quietly at the bottom."],
+  ["01", "Logo intro", "0:00 – 0:05 · dark", "Letters rise out of a mask (expo-out, 4f stagger) → bull charges into the A, bear rises in the T → red line draws from centre, tagline tracks in. Crimson haze drifts below."],
+  ["02", "What is ABET", "0:05 – 0:16 · dark", "Space Black laptop rises and orbits into a 3/4 view, lid opening. Feature cards lift off the screen into 3D space with depth-of-field (near sharp, far soft)."],
+  ["03", "How it works", "0:16 – 0:27 · light", "Screen whites out into the light world (match cut). Cards lift on each VO beat, icons draw on, progress line fills. The 'Fund' card leads into the deposit."],
+  ["04", "Tap Deposit", "0:27 – 0:34 · light", "Laptop racks out of focus; the Deposit button lifts off the screen as a big glass hero. Cursor glides in on a bezier path, press ripple, button squash."],
+  ["05", "Deposit · Step 1", "0:34 – 0:40 · light", "The deposit card is isolated over the blurred laptop. Methods ring as the VO names them; check badge pops with soft overshoot on select."],
+  ["06", "Deposit · Step 2 / 3", "0:40 – 0:50 · light", "Stepper number morphs into a check, line fills. Amount types in with a caret; next panel slides in. Review rows tick one by one."],
+  ["07", "Deposit · Step 4", "0:50 – 0:58 · light", "Confirm morphs pill → spinner → success check. Focus racks back to the sharp 3/4 laptop; transactions card floats out; row flips Pending → Approved."],
+  ["08", "Outro", "0:58 – 1:07 · dark", "Crimson circle wipe back to navy. Logo rebuilds, tagline reveals, CTA pills spring in; risk line sits quietly at the bottom."],
 ];
 
 const Swatch: React.FC<{ c: string; n: string; dark?: boolean }> = ({ c, n, dark }) => (
@@ -51,7 +51,7 @@ export const DesignSheet: React.FC = () => {
       {/* Header */}
       <div style={{ position: "absolute", left: MX, top: 90, right: MX, display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 18, letterSpacing: "0.2em", color: C.red, fontWeight: 500 }}>DESIGN SHEET · V2 · MACBOOK + BRITISH VO</div>
+          <div style={{ fontSize: 18, letterSpacing: "0.2em", color: C.red, fontWeight: 500 }}>DESIGN SHEET · V3 · PREMIUM PASS</div>
           <div style={{ fontSize: 76, fontWeight: 600, letterSpacing: "-0.035em", color: C.ink, marginTop: 14 }}>ABET Global — What it is & how to deposit</div>
           <div style={{ fontSize: 24, color: C.sub, marginTop: 12 }}>16:9 · 1920×1080 · 30 fps · ~65 s · British male VO · word-highlight captions · composed music + UI SFX · dark → light → dark</div>
         </div>

@@ -253,15 +253,11 @@ const Row: React.FC<{ l: string; v: React.ReactNode; check?: number; strong?: bo
   </div>
 );
 
-export const DepositPage: React.FC<DepositState> = (st) => {
+export const DepositCard: React.FC<DepositState & { style?: React.CSSProperties; h?: number }> = ({ style, h = 700, ...st }) => {
   const vt = st.viewT ?? 1;
   const enter: React.CSSProperties = { position: "absolute", left: 30, right: 30, top: 150, bottom: 28, opacity: vt, transform: `translateX(${(1 - vt) * 40}px)` };
   return (
-    <div style={{ position: "absolute", left: 250, top: 66, width: PW - 250, height: PH - 66, background: "#FAFBFC", padding: "26px 30px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, ...T(34, 600, C.ink, { letterSpacing: "-0.03em" }) }}>Deposit <Icon name="info" size={20} color={C.amber} /></div>
-      <div style={{ ...T(16, 400, C.sub), marginTop: 4 }}>Fund your trading account.</div>
-      <div style={{ display: "flex", gap: 22, marginTop: 22 }}>
-        <div style={{ ...card, width: 900, height: 700, padding: "26px 30px", position: "relative", overflow: "hidden" }}>
+  <div style={{ ...card, width: 900, height: h, padding: "26px 30px", position: "relative", overflow: "hidden", ...style }}>
           <Stepper step={st.step} />
           <div style={{ height: 1, background: C.line, margin: "24px 0" }} />
           {st.view === 0 && (
@@ -322,6 +318,16 @@ export const DepositPage: React.FC<DepositState> = (st) => {
             </div>
           )}
         </div>
+  );
+};
+
+export const DepositPage: React.FC<DepositState> = (st) => {
+  return (
+    <div style={{ position: "absolute", left: 250, top: 66, width: PW - 250, height: PH - 66, background: "#FAFBFC", padding: "26px 30px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, ...T(34, 600, C.ink, { letterSpacing: "-0.03em" }) }}>Deposit <Icon name="info" size={20} color={C.amber} /></div>
+      <div style={{ ...T(16, 400, C.sub), marginTop: 4 }}>Fund your trading account.</div>
+      <div style={{ display: "flex", gap: 22, marginTop: 22 }}>
+        <DepositCard {...st} />
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ ...card, padding: 22 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, ...T(18, 600, C.ink) }}><Icon name="card" size={20} color={C.red} />Deposit Summary</div>
