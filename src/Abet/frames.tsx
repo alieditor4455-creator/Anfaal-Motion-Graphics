@@ -1,6 +1,16 @@
 import React from "react";
-import { AbetLogo, BgDark, BgLight, C, Cursor, Eyebrow, FONT, Icon, StepBadge, mix } from "./theme";
+import { AbetLogo, BgDark, BgLight, C, Caption, Cursor, Eyebrow, FONT, Icon, StepBadge, mix } from "./theme";
 import { Dashboard, DepositPage, DepositState, PH, PW, PortalWindow, TxRow } from "./portal";
+import { BrowserScreen, MacBook, MacProps } from "./macbook";
+
+// MacBook with the ABET portal on screen
+export const MacPortal: React.FC<Omit<MacProps, "children"> & { active?: string; sub?: string; children: React.ReactNode }> = ({ active, sub, children, ...mac }) => (
+  <MacBook {...mac}>
+    <BrowserScreen>
+      <PortalWindow bare active={active} sub={sub} style={{ left: 0, top: 0 }}>{children}</PortalWindow>
+    </BrowserScreen>
+  </MacBook>
+);
 
 export const W = 1920;
 export const H = 1080;
@@ -76,18 +86,16 @@ export const SF1: React.FC = () => (
 export const SF2: React.FC = () => (
   <Stage>
     <BgDark t={200} />
-    <div style={{ position: "absolute", top: 92, width: W, textAlign: "center" }}>
-      <div style={head(70, "#fff")}>One clean portal</div>
-      <div style={{ ...head(70, "rgba(255,255,255,0.55)"), marginTop: 6 }}>for the <span style={redGrad}>global markets.</span></div>
+    <div style={{ position: "absolute", top: 70, width: W, textAlign: "center" }}>
+      <div style={head(66, "#fff")}>One clean portal</div>
+      <div style={{ ...head(66, "rgba(255,255,255,0.55)"), marginTop: 6 }}>for the <span style={redGrad}>global markets.</span></div>
     </div>
-    <div style={{ position: "absolute", left: 0, top: 0, width: W, height: H, perspective: 2400 }}>
-      <PortalWindow style={{ left: WIN_X, top: 330, transform: "scale(0.82) rotateX(14deg)", transformOrigin: "50% 0%" }}>
-        <Dashboard highlight="wallet" dim={0.7} />
-      </PortalWindow>
-    </div>
-    <Callout icon="wallet" label="Wallet & balance" style={{ left: 150, top: 470 }} />
-    <Callout icon="calendar" label="Economic calendar" style={{ right: 150, top: 560, opacity: 0.55 }} />
-    <div style={{ position: "absolute", left: 0, bottom: 0, width: W, height: 240, background: `linear-gradient(180deg, rgba(10,15,25,0) 0%, ${C.navy} 90%)` }} />
+    <MacPortal x={W / 2 + 20} y={800} scale={0.52} rx={-10} ry={-24} lid={24}>
+      <Dashboard highlight="wallet" dim={0.7} />
+    </MacPortal>
+    <Callout icon="wallet" label="Wallet & balance" style={{ left: 170, top: 470 }} />
+    <Callout icon="calendar" label="Economic calendar" style={{ right: 130, top: 420, opacity: 0.55 }} />
+    <Caption dark text="Your wallet, your accounts, social trading and the economic calendar." k={2.5} />
   </Stage>
 );
 
@@ -106,39 +114,40 @@ export const SF3: React.FC = () => (
   </Stage>
 );
 
-const DepositFrame: React.FC<{ st: DepositState; z: number; fx: number; fy: number; badge: [string, string]; cursor?: [number, number]; extra?: React.ReactNode }> = ({ st, z, fx, fy, badge, cursor, extra }) => (
+type MacView = { x: number; y: number; scale: number; rx: number; ry: number; lid: number };
+export const MAC_WIDE_R: MacView = { x: W / 2 - 20, y: 800, scale: 0.52, rx: -10, ry: 22, lid: 24 };
+export const MAC_CLOSE: MacView = { x: W / 2, y: 1010, scale: 0.9, rx: -4, ry: -5, lid: 14 };
+
+const DepositFrame: React.FC<{ st: DepositState; mac: MacView; badge: [string, string]; cursor?: [number, number]; extra?: React.ReactNode; cap?: [string, number] }> = ({ st, mac, badge, cursor, extra, cap }) => (
   <Stage>
     <BgLight t={500} />
-    <Camera z={z} fx={fx} fy={fy}>
-      <PortalWindow active="Funds" sub="Deposit" style={{ left: WIN_X, top: WIN_Y }}>
-        <DepositPage {...st} />
-      </PortalWindow>
+    <MacPortal {...mac} active="Funds" sub="Deposit">
+      <DepositPage {...st} />
       {cursor && <Cursor x={cursor[0]} y={cursor[1]} />}
-    </Camera>
+    </MacPortal>
     {extra}
     <StepBadge n={badge[0]} label={badge[1]} style={{ position: "absolute", left: 72, bottom: 56 }} />
+    {cap && <Caption text={cap[0]} k={cap[1]} />}
   </Stage>
 );
 
 export const SF4: React.FC = () => (
-  <DepositFrame st={{ step: 0, view: 0, sel: 1, rings: [1, 0, 0], summaryAmount: "—" }} z={1.14} fx={760} fy={300} badge={["STEP 01/04", "Choose a method"]} cursor={[WIN_X + 470, WIN_Y + 470]} />
+  <DepositFrame st={{ step: 0, view: 0, sel: 1, rings: [1, 0, 0], summaryAmount: "—" }} mac={MAC_WIDE_R} badge={["STEP 01/04", "Choose a method"]} cursor={[470, 420]} />
 );
 export const SF5: React.FC = () => (
-  <DepositFrame st={{ step: 1, view: 1, amount: "$500.00", caret: true, chip: 1, summaryAmount: "$500.00" }} z={1.14} fx={760} fy={300} badge={["STEP 02/04", "Enter details"]} />
+  <DepositFrame st={{ step: 1, view: 1, amount: "$500.00", caret: true, chip: 1, summaryAmount: "$500.00" }} mac={MAC_CLOSE} badge={["STEP 02/04", "Enter details"]} cap={["Step two. Enter the amount, and your payment details.", 5.4]} />
 );
 export const SF6: React.FC = () => (
-  <DepositFrame st={{ step: 2, view: 2, checks: [1, 1, 1, 0.6], summaryAmount: "$500.00" }} z={1.14} fx={760} fy={300} badge={["STEP 03/04", "Review"]} />
+  <DepositFrame st={{ step: 2, view: 2, checks: [1, 1, 1, 0.6], summaryAmount: "$500.00" }} mac={{ ...MAC_CLOSE, ry: 5 }} badge={["STEP 03/04", "Review"]} />
 );
 export const SF7: React.FC = () => (
   <DepositFrame
     st={{ step: 4, view: 3, success: 1, summaryAmount: "$500.00" }}
-    z={1}
-    fx={W / 2}
-    fy={H / 2}
+    mac={{ x: 800, y: 800, scale: 0.52, rx: -10, ry: -22, lid: 24 }}
     badge={["STEP 04/04", "Confirm & track"]}
     extra={
-      <div style={{ position: "absolute", right: 70, top: 560, width: 520, padding: "20px 26px", borderRadius: 22, background: "rgba(255,255,255,0.92)", backdropFilter: "blur(18px)", border: `1px solid ${C.line}`, boxShadow: "0 40px 80px -30px rgba(17,24,39,0.45)", fontFamily: FONT }}>
-        <div style={{ fontSize: 18, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Latest Transactions</div>
+      <div style={{ position: "absolute", right: 90, top: 430, width: 540, padding: "22px 28px", borderRadius: 24, background: "rgba(255,255,255,0.94)", backdropFilter: "blur(18px)", border: `1px solid ${C.line}`, boxShadow: "0 50px 90px -30px rgba(17,24,39,0.45)", fontFamily: FONT }}>
+        <div style={{ fontSize: 19, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Latest Transactions</div>
         <TxRow method="Crypto Wallet · Just now" amount="$500.00" status="Pending" flash={1} />
         <TxRow method="Crypto Wallet · Nov 18" amount="$750.00" status="Approved" />
       </div>

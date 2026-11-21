@@ -186,3 +186,19 @@ export const Cursor: React.FC<{ x: number; y: number; press?: number; scale?: nu
     </svg>
   </div>
 );
+
+// Word-highlight caption: spoken words full ink, upcoming words dimmed. `k` = words spoken so far (float).
+export const Caption: React.FC<{ text: string; k: number; dark?: boolean; opacity?: number; y?: number }> = ({ text, k, dark, opacity = 1, y = 0 }) => {
+  const words = text.split(" ");
+  return (
+    <div style={{ position: "absolute", left: 0, right: 0, bottom: 52, display: "flex", justifyContent: "center", opacity, transform: `translateY(${y}px)`, zIndex: 80 }}>
+      <div style={{ maxWidth: 1500, padding: "12px 28px", borderRadius: 16, background: dark ? "rgba(10,15,25,0.55)" : "rgba(255,255,255,0.82)", backdropFilter: "blur(14px)", border: dark ? "1px solid rgba(255,255,255,0.08)" : `1px solid ${C.line}`, boxShadow: dark ? "none" : "0 14px 30px -18px rgba(17,24,39,0.35)", fontFamily: FONT, fontSize: 32, fontWeight: 500, letterSpacing: "-0.01em", textAlign: "center", lineHeight: 1.3 }}>
+        {words.map((w, i) => {
+          const on = Math.max(0, Math.min(1, k - i));
+          const col = dark ? `rgba(255,255,255,${0.32 + 0.68 * on})` : `rgba(17,24,39,${0.28 + 0.72 * on})`;
+          return <span key={i} style={{ color: col }}>{w}{i < words.length - 1 ? " " : ""}</span>;
+        })}
+      </div>
+    </div>
+  );
+};

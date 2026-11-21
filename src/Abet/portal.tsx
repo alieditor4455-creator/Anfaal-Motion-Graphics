@@ -2,8 +2,8 @@ import React from "react";
 import { AbetLogo, C, FONT, Icon, mix } from "./theme";
 
 // Portal window native size. Everything inside is laid out in these px.
-export const PW = 1560;
-export const PH = 860;
+export const PW = 1600;
+export const PH = 924;
 
 const card: React.CSSProperties = { background: "#fff", borderRadius: 18, border: `1px solid ${C.line}`, boxShadow: "0 1px 2px rgba(17,24,39,0.04), 0 8px 24px -12px rgba(17,24,39,0.08)" };
 const T = (size: number, weight = 400, color: string = C.text, extra: React.CSSProperties = {}): React.CSSProperties => ({ fontFamily: FONT, fontSize: size, fontWeight: weight, color, letterSpacing: "-0.01em", ...extra });
@@ -261,7 +261,7 @@ export const DepositPage: React.FC<DepositState> = (st) => {
       <div style={{ display: "flex", alignItems: "center", gap: 10, ...T(34, 600, C.ink, { letterSpacing: "-0.03em" }) }}>Deposit <Icon name="info" size={20} color={C.amber} /></div>
       <div style={{ ...T(16, 400, C.sub), marginTop: 4 }}>Fund your trading account.</div>
       <div style={{ display: "flex", gap: 22, marginTop: 22 }}>
-        <div style={{ ...card, width: 880, height: 640, padding: "26px 30px", position: "relative", overflow: "hidden" }}>
+        <div style={{ ...card, width: 900, height: 700, padding: "26px 30px", position: "relative", overflow: "hidden" }}>
           <Stepper step={st.step} />
           <div style={{ height: 1, background: C.line, margin: "24px 0" }} />
           {st.view === 0 && (
@@ -364,8 +364,8 @@ export const Success: React.FC<{ t: number }> = ({ t }) => {
 };
 
 // ---------------- The window chrome ----------------
-export const PortalWindow: React.FC<{ children: React.ReactNode; active?: string; sub?: string; style?: React.CSSProperties }> = ({ children, active = "Discover", sub, style }) => (
-  <div style={{ position: "absolute", width: PW, height: PH, borderRadius: 24, overflow: "hidden", background: "#fff", boxShadow: "0 50px 120px -30px rgba(15,23,42,0.35), 0 0 0 1px rgba(15,23,42,0.06)", ...style }}>
+export const PortalWindow: React.FC<{ children: React.ReactNode; active?: string; sub?: string; bare?: boolean; style?: React.CSSProperties }> = ({ children, active = "Discover", sub, bare, style }) => (
+  <div style={{ position: "absolute", width: PW, height: PH, borderRadius: bare ? 0 : 24, overflow: "hidden", background: "#fff", boxShadow: bare ? "none" : "0 50px 120px -30px rgba(15,23,42,0.35), 0 0 0 1px rgba(15,23,42,0.06)", ...style }}>
     <Header />
     <Sidebar active={active} sub={sub} />
     {children}

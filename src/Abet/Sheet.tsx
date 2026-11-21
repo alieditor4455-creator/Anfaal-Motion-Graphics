@@ -12,12 +12,12 @@ const MX = (SHEET_W - 2 * FW - GAP) / 2;
 
 const META: [string, string, string, string][] = [
   ["01", "Logo intro", "0:00 – 0:05 · dark", "Letters rise out of a mask (expo-out, 4f stagger) → bull charges into the A, bear rises in the T → red line draws from centre, tagline tracks in."],
-  ["02", "What is ABET", "0:05 – 0:15 · dark", "Headline word-by-word blur-up. Portal rises in 3D (rotateX 14° → 0°). Camera glides to each feature; glass callouts pop with soft overshoot."],
+  ["02", "What is ABET", "0:05 – 0:15 · dark", "Space Black MacBook rises and orbits from a steep angle into a 3/4 view while the lid opens. Camera glides to each feature; glass callouts pop with soft overshoot."],
   ["03", "How it works", "0:15 – 0:26 · light", "Dashboard card morphs to full-frame (radius 24 → 0) and becomes the light world. Cards lift on each VO beat; icons draw on; progress line fills."],
-  ["04", "Deposit · Step 1", "0:30 – 0:39 · light", "The 'Fund' card morphs into the Deposit pill → the portal. Cursor glides on a bezier path; cards ring as named; check badge pops on select."],
-  ["05", "Deposit · Step 2", "0:39 – 0:43 · light", "Stepper number morphs into a check; line fills green. Amount types in with a caret; summary counts up live."],
+  ["04", "Deposit · Step 1", "0:30 – 0:39 · light", "The 'Fund' card morphs into the Deposit pill, then the MacBook slides in at 3/4. Cursor glides on a bezier path inside the screen; cards ring as named."],
+  ["05", "Deposit · Step 2", "0:39 – 0:43 · light", "The MacBook turns to face the camera as we push into the screen. Stepper number morphs into a check; amount types in; summary counts up live."],
   ["06", "Deposit · Step 3", "0:43 – 0:48 · light", "Camera pushes into the review card; each row ticks in sequence on 'double-check every detail'."],
-  ["07", "Deposit · Step 4", "0:48 – 0:56 · light", "Confirm button morphs pill → spinner circle → green success check. Transactions card glides in; the new row flips Pending → Approved."],
+  ["07", "Deposit · Step 4", "0:48 – 0:56 · light", "Confirm morphs pill → spinner → success check. Camera pulls back to the 3/4 MacBook; a transactions card floats out of the screen and the row flips Pending → Approved."],
   ["08", "Outro", "0:56 – 1:05 · dark", "Crimson circle wipe back to navy. Logo rebuilds, tagline reveals, CTA pills spring in; risk line sits quietly at the bottom."],
 ];
 
@@ -51,9 +51,9 @@ export const DesignSheet: React.FC = () => {
       {/* Header */}
       <div style={{ position: "absolute", left: MX, top: 90, right: MX, display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 18, letterSpacing: "0.2em", color: C.red, fontWeight: 500 }}>DESIGN SHEET · V1 · FOR APPROVAL</div>
+          <div style={{ fontSize: 18, letterSpacing: "0.2em", color: C.red, fontWeight: 500 }}>DESIGN SHEET · V2 · MACBOOK + BRITISH VO</div>
           <div style={{ fontSize: 76, fontWeight: 600, letterSpacing: "-0.035em", color: C.ink, marginTop: 14 }}>ABET Global — What it is & how to deposit</div>
-          <div style={{ fontSize: 24, color: C.sub, marginTop: 12 }}>16:9 · 1920×1080 · 30 fps · ~65 s · new male VO (calm, confident, US) · dark → light → dark</div>
+          <div style={{ fontSize: 24, color: C.sub, marginTop: 12 }}>16:9 · 1920×1080 · 30 fps · ~65 s · British male VO · word-highlight captions · composed music + UI SFX · dark → light → dark</div>
         </div>
         <div style={{ padding: "26px 34px", borderRadius: 24, background: C.navy }}><AbetLogo width={260} /></div>
       </div>
@@ -117,4 +117,11 @@ export const DesignSheet: React.FC = () => {
       })}
     </div>
   );
+};
+
+export const AbetFrame: React.FC<{ i: number }> = ({ i }) => {
+  const [h] = useState(() => delayRender("fonts"));
+  useEffect(() => { fontsLoaded.then(() => document.fonts.ready).then(() => continueRender(h)); }, [h]);
+  const F = FRAMES[i];
+  return <F />;
 };
