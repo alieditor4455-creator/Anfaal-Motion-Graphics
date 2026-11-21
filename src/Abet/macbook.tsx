@@ -92,8 +92,8 @@ export type MacProps = {
 };
 
 export const MacBook: React.FC<MacProps> = ({ x, y, scale = 1, rx = -14, ry = -16, lid = 18, glare = 1, rim = 0, children }) => (
-  <div style={{ position: "absolute", left: x, top: y, width: 0, height: 0, perspective: 7000, perspectiveOrigin: `0px ${-LID_H * 0.35}px` }}>
-    <div style={{ position: "absolute", left: 0, top: 0, transformStyle: "preserve-3d", transform: `scale(${scale}) rotateX(${rx}deg) rotateY(${ry}deg)` }}>
+  <div style={{ position: "absolute", left: 0, top: 0, width: 0, height: 0, transform: `translate3d(${x}px, ${y}px, 0)`, willChange: "transform", perspective: 7000, perspectiveOrigin: `0px ${-LID_H * 0.35}px` }}>
+    <div style={{ position: "absolute", left: 0, top: 0, transformStyle: "preserve-3d", willChange: "transform", transform: `scale(${scale}) rotateX(${rx}deg) rotateY(${ry}deg)` }}>
       {/* ---------- base ---------- */}
       <div style={{ position: "absolute", left: -BASE_W / 2, top: 0, width: BASE_W, height: BASE_D, transformOrigin: "50% 0", transform: "rotateX(90deg)", transformStyle: "preserve-3d" }}>
         {/* contact shadow on the floor */}

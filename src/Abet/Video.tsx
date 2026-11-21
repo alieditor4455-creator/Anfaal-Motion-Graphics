@@ -328,7 +328,7 @@ const SceneDeposit: React.FC<{ t: number }> = ({ t }) => {
         </>
       )}
       {t >= 34.75 && t < 59.8 && (
-        <div style={{ position: "absolute", left: bx - bw / 2, top: by - bh / 2, width: bw, height: bh, perspective: 1600, opacity: k(t, 34.75, 35.35, EIO) * (1 - k(t, 59.15, 59.75, EIO)), transform: `translate(${-150 * cardBack}px, ${-10 * cardBack}px) scale(${mix(0.4, 1, lift) * (1 - bp * 0.05) * mix(1, 0.5, cardBack)})`, filter: lift < 1 ? `blur(${(1 - lift) * 8}px)` : cardBack > 0 ? `blur(${cardBack * 6}px)` : undefined }}>
+        <div style={{ position: "absolute", left: 0, top: 0, width: bw, height: bh, perspective: 1600, willChange: "transform", opacity: k(t, 34.75, 35.35, EIO) * (1 - k(t, 59.15, 59.75, EIO)), transform: `translate3d(${bx - bw / 2 - 150 * cardBack}px, ${by - bh / 2 - 10 * cardBack}px, 0) scale(${mix(0.4, 1, lift) * (1 - bp * 0.05) * mix(1, 0.5, cardBack)})`, filter: lift < 1 ? `blur(${(1 - lift) * 8}px)` : cardBack > 0 ? `blur(${cardBack * 6}px)` : undefined }}>
           <div style={{ position: "absolute", inset: 0, transform: `rotateX(${crx}deg) rotateY(${cry}deg)` }}>
             <div style={{ position: "absolute", inset: 0, borderRadius: mix(30, 28, morph), overflow: "hidden", background: "linear-gradient(165deg, #FFFFFF 0%, #FBFBFC 100%)", boxShadow: `inset 0 1px 0 #fff, 0 0 0 1px rgba(17,24,39,${0.06 * morph}), 0 30px 60px -24px rgba(17,24,39,${0.22 * morph}), 0 80px 140px -50px rgba(179,36,42,${0.35 * morph})` }}>
               {morph > 0.35 && (

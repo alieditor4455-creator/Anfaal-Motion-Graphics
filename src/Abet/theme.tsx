@@ -179,7 +179,7 @@ export const StepBadge: React.FC<{ n: string; label: string; style?: React.CSSPr
 );
 
 export const Cursor: React.FC<{ x: number; y: number; press?: number; scale?: number }> = ({ x, y, press = 0, scale = 1 }) => (
-  <div style={{ position: "absolute", left: x, top: y, transform: `scale(${scale * (1 - press * 0.12)})`, transformOrigin: "0 0", zIndex: 50 }}>
+  <div style={{ position: "absolute", left: 0, top: 0, transform: `translate3d(${x}px, ${y}px, 0) scale(${scale * (1 - press * 0.12)})`, transformOrigin: "0 0", willChange: "transform", zIndex: 50 }}>
     {press > 0 && <div style={{ position: "absolute", left: -26, top: -26, width: 52, height: 52, borderRadius: 99, border: `3px solid ${C.red}`, opacity: 1 - press, transform: `scale(${0.4 + press * 1.4})` }} />}
     <svg width="34" height="34" viewBox="0 0 24 24" style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))" }}>
       <path d="M4 2.5 19.5 11l-7 1.8L9 19.8z" fill="#111" stroke="#fff" strokeWidth="1.4" strokeLinejoin="round" />
