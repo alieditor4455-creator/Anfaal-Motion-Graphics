@@ -20,6 +20,7 @@ import { AnfaalReel9Cover } from "./Anfaal9/Cover";
 import { AnfaalReel10, R10_FRAMES } from "./Anfaal10/Reel";
 import { AnfaalReel10Cover } from "./Anfaal10/Cover";
 import { AnfaalReel11, R11_FRAMES } from "./Anfaal11/Reel";
+import { AnfaalReel11Cover } from "./Anfaal11/Cover";
 import { AnfaalReel9, R9_FRAMES } from "./Anfaal9/Reel";
 
 export const RemotionRoot: React.FC = () => (
@@ -39,6 +40,7 @@ export const RemotionRoot: React.FC = () => (
     <Still id="AnfaalReel8Cover" component={AnfaalReel8Cover} width={1080} height={1920} />
     <Still id="AnfaalReel9Cover" component={AnfaalReel9Cover} width={1080} height={1920} />
     <Still id="AnfaalReel10Cover" component={AnfaalReel10Cover} width={1080} height={1920} />
+    <Still id="AnfaalReel11Cover" component={AnfaalReel11Cover} width={1080} height={1920} />
     <Still id="AnfaalReel7Cover" component={AnfaalReel7Cover} width={1080} height={1920} />
     <Still id="AnfaalReel6Cover" component={AnfaalReel6Cover} width={1080} height={1920} />
     <Still id="AnfaalReel5Cover" component={AnfaalReel5Cover} width={1080} height={1920} />
